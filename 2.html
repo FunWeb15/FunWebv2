@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Grade 7 Study Guide </title>
+  <meta name="description" content="Grade 7 Study Guide — Motion. Interactive accordion, diagrams (ASCII & SVG), examples, highlight boxes. Single file for IIS." />
+  <!-- ===================================================================
+       PLACEHOLDER: Insert Part B (CSS) here inside a <style>...</style>
+       Replace this comment with the full CSS block (Part B).
+       =================================================================== -->
+  <style>
+ /* ===========================
+   PART B — Styles for Motion Study Guide (Ultra Extended)
+   - Soft UI, rounded corners
+   - Colors: blue #4285f4, teal #2db3a6, white, light gray
+   - Responsive styles and accessible sizes
+   - Smooth fade-in animations, accordion transitions
+   =========================== */
+
+/* Root variables and base */
+:root{
+  --blue:#4285f4;
+  --teal:#2db3a6;
+  --bg:#f6f8fb;
+  --card:#ffffff;
+  --muted:#55606b;
+  --accent: linear-gradient(90deg,#4285f4,#4bc0ff);
+  --radius:16px;
+  --shadow: 0 10px 30px rgba(6,59,100,0.06);
+  --glass: rgba(255,255,255,0.6);
+  --ease: cubic-bezier(.16,.84,.25,1);
+  --maxw:1200px;
+  --focus: 3px solid rgba(66,133,244,0.12);
+}
+
+/* Basic reset */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0}
+body{
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg,#e8f6ff 0%, var(--bg) 30%);
+  color:#072034;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height:1.5;
+  padding:18px;
+}
+
+/* App container */
+.app{
+  max-width:var(--maxw);
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* Sticky header */
+.sticky-header{
+  position:sticky;top:12px;z-index:80;
+  background:linear-gradient(180deg,rgba(255,255,255,0.7), rgba(255,255,255,0.6));
+  backdrop-filter: blur(6px);
+  border-radius:12px;padding:12px;border:1px solid rgba(6,59,100,0.06);
+  box-shadow: 0 8px 24px rgba(6,59,100,0.03);
+}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{
+  width:64px;height:64px;border-radius:14px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;
+  box-shadow:0 8px 22px rgba(66,133,244,0.12);
+}
+.main-title{margin:0;font-size:1.2rem;color:#063b64}
+.lead{margin:4px 0;color:var(--muted)}
+
+/* Table of contents (TOC) buttons */
+.toc{display:flex;gap:8px;flex-wrap:wrap}
+.toc-btn{
+  background:transparent;border:1px solid rgba(6,59,100,0.05);padding:8px 10px;border-radius:10px;
+  cursor:pointer;color:#08304a;font-weight:700;font-size:13px;
+}
+.toc-btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(6,59,100,0.04)}
+
+/* Main content layout */
+.content{
+  display:grid;grid-template-columns:1fr;gap:16px;
+}
+@media(min-width:980px){
+  .content{grid-template-columns: 1fr 360px;align-items:start}
+}
+
+/* Card styles */
+.card{
+  background:var(--card);border-radius:var(--radius);padding:14px;border:1px solid rgba(6,59,100,0.04);
+  box-shadow:var(--shadow);
+  transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(6,59,100,0.06)}
+
+/* Headings */
+h2,h3{margin:0;color:#063b64}
+h3{font-size:1.02rem}
+.p{margin:10px 0;color:#0d2b3a}
+.small{font-size:0.95rem;color:var(--muted)}
+
+/* Highlight boxes */
+.highlight{padding:10px;border-radius:10px;background:linear-gradient(180deg,rgba(66,133,244,0.06), rgba(66,133,244,0.02));border:1px solid rgba(66,133,244,0.06);margin:8px 0}
+.box{border-radius:10px;padding:10px;background:linear-gradient(180deg,#ffffff,#fbfdff);border:1px solid rgba(6,59,100,0.04);box-shadow:0 6px 18px rgba(6,59,100,0.03)}
+.side-by-side{display:flex;gap:12px;flex-wrap:wrap}
+.side-by-side .box{flex:1;min-width:220px}
+
+/* ASCII diagram */
+.ascii{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;background:#0b1220;color:#dbeafe;padding:10px;border-radius:8px;overflow:auto;border:1px solid rgba(124,185,255,0.06)}
+
+/* Visuals */
+.visual{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.svg{max-width:100%;height:auto;display:block}
+.diag{margin-top:10px}
+
+/* Callouts */
+.callouts{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.callout{flex:1;padding:10px;border-radius:10px;background:#f3fbff;border:1px solid rgba(66,133,244,0.04)}
+.callout.remember{background:linear-gradient(180deg,#f0fff7,#e9fff6);border-color:rgba(45,179,166,0.06)}
+.callout.real{background:linear-gradient(180deg,#fff8e9,#fff6e9);border-color:rgba(255,170,0,0.06)}
+.callout.miscon{background:linear-gradient(180deg,#fff0f3,#fff0f6);border-color:rgba(255,80,120,0.06)}
+.callout.important{background:linear-gradient(180deg,#fff9f2,#fff9f7);border-color:rgba(255,120,0,0.06)}
+
+/* Accordion */
+.accordion{margin-top:10px}
+.accordion-btn{
+  width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:10px;border:1px solid rgba(6,59,100,0.04);background:transparent;font-weight:700;cursor:pointer
+}
+.panel{overflow:hidden;max-height:0;transition:max-height 360ms var(--ease), opacity 260ms var(--ease);opacity:0;padding:0 10px}
+.panel.open{opacity:1;padding:10px 10px;max-height:1000px}
+
+/* Quiz-like reveal area (not quiz) */
+.btn{padding:8px 12px;border-radius:10px;border:0;background:var(--blue);color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(66,133,244,0.12)}
+.btn.secondary{background:#eef6ff;color:var(--blue);border:1px solid rgba(66,133,244,0.12)}
+.btn:focus{outline:var(--focus);outline-offset:4px}
+
+/* Table */
+.smalltable{width:100%;border-collapse:collapse}
+.smalltable td{padding:6px 8px;border-bottom:1px dashed rgba(6,59,100,0.04);color:#08304a}
+
+/* Summary & controls */
+.summary{padding:12px;border-radius:10px;background:linear-gradient(180deg,#eef9ff,#ffffff);border:1px solid rgba(66,133,244,0.05)}
+.hint{font-size:0.95rem;color:var(--muted);margin-top:8px}
+
+/* Footer */
+.footer{margin-top:12px;text-align:center;color:var(--muted)}
+
+/* Animations */
+.fade-in{opacity:0;transform:translateY(8px);transition:opacity 420ms var(--ease), transform 420ms var(--ease)}
+.fade-in.visible{opacity:1;transform:none}
+.icon-fade{opacity:0;transform:translateY(6px);transition:all 360ms var(--ease)}
+.icon-fade.visible{opacity:1;transform:none}
+
+/* Accessibility considerations */
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important}
+}
+
+/* Responsive tweaks */
+@media (max-width:760px){
+  .header-inner{flex-direction:column;align-items:flex-start}
+  .toc{display:flex;overflow:auto}
+  .toc-btn{font-size:12px;padding:8px}
+  .content{grid-template-columns:1fr}
+  .side-by-side{flex-direction:column}
+}
+
+  </style>
+</head>
+<body>
+  <!-- Main app container -->
+  <div id="app" class="app" role="main" aria-labelledby="main-title">
+
+    <!-- Sticky header for navigation -->
+    <header class="sticky-header" role="banner" aria-label="Study guide navigation">
+      <div class="header-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">MOTION</div>
+          <div>
+            <h1 id="main-title" class="main-title">Study Guide </h1>
+            <p class="lead">Short, friendly review for Grade 7 students. Read before using the motion simulation.</p>
+          </div>
+        </div>
+
+        <nav class="toc" aria-label="Table of contents">
+          <button class="toc-btn" data-scroll-to="sec-what">1. What is Motion?</button>
+          <button class="toc-btn" data-scroll-to="sec-position">2. Position & Reference Point</button>
+          <button class="toc-btn" data-scroll-to="sec-distdisp">3. Distance vs Displacement</button>
+          <button class="toc-btn" data-scroll-to="sec-speed">4. Speed</button>
+          <button class="toc-btn" data-scroll-to="sec-velocity">5. Velocity</button>
+          <button class="toc-btn" data-scroll-to="sec-accel">6. Acceleration</button>
+          <button class="toc-btn" data-scroll-to="sec-graph">7. Distance–Time Graph</button>
+          <button class="toc-btn" data-scroll-to="sec-apps">8. Real-Life Applications</button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="content">
+
+      <!-- Intro block -->
+      <section class="card intro" id="intro">
+        <h2>Welcome — Motion</h2>
+        <p class="p">This study guide explains <strong>motion</strong> in simple words. Read carefully, try the interactive parts, and think about the examples before using the simulation.</p>
+        <div class="hint">Tip: Use the table-of-contents buttons above to jump to any section.</div>
+      </section>
+
+      <!-- 1. What is Motion? -->
+      <section class="card" id="sec-what" aria-labelledby="what-title">
+        <h3 id="what-title">1. What is Motion?</h3>
+        <p class="lead">Simple definition — Motion is a change in an object's position compared to a reference point.</p>
+
+        <div class="highlight keyidea">
+          <strong>Key Idea:</strong> Motion means something changes where it is when compared to something else.
+        </div>
+
+        <div class="p">When do we say something is in motion?</div>
+        <ul>
+          <li>When it changes position over time compared to a reference point.</li>
+          <li><em>Example:</em> A jeepney passing a sign — the jeepney is moving relative to the sign.</li>
+          <li><em>Example:</em> A student walking past a classroom door.</li>
+          <li><em>Example:</em> A ball rolling along the floor.</li>
+        </ul>
+
+        <div class="p">Why do we need a reference point?</div>
+        <p class="p">We measure motion by comparing where something is to a fixed place or object. This fixed place is the <strong>reference point</strong>. Without it, we cannot tell if the object moved.</p>
+
+        <!-- ASCII diagram -->
+        <div class="box diag">
+<pre class="ascii">
+House    Pole    YOU    Tree
+[H] ---- [P] ---- [Y] ---- [T]
+       ^ reference point
+If YOU move right, your position changes relative to the Pole.
+</pre>
+        </div>
+
+        <div class="callouts">
+          <div class="callout remember">
+            <strong>Remember:</strong> Motion is always compared to a reference point.
+          </div>
+          <div class="callout real">
+            <strong>Real-Life Connection:</strong> You feel still inside a moving jeepney, but you are moving relative to the road.
+          </div>
+        </div>
+
+        <div class="accordion">
+          <button class="accordion-btn" aria-expanded="false" aria-controls="what-more">More: Everyday examples</button>
+          <div class="panel" id="what-more">
+            <ul>
+              <li><strong>Car:</strong> Its position changes against buildings and signs.</li>
+              <li><strong>Walking:</strong> Your position changes relative to the classroom door.</li>
+              <li><strong>Ball rolling:</strong> It changes position along the floor compared to one corner of the room.</li>
+            </ul>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 2. Position and Reference Point -->
+      <section class="card" id="sec-position" aria-labelledby="position-title">
+        <h3 id="position-title">2. Position and Reference Point</h3>
+        <p class="lead">Position tells us where an object is. The reference point is the "place" we use to compare.</p>
+
+        <div class="box">
+          <strong>What is position?</strong>
+          <p class="p">Position is the location of an object. We can write it as "5 meters from the door" or "2 meters north of the tree".</p>
+        </div>
+
+        <div class="p">Static vs. moving reference point (simple):</div>
+        <ul>
+          <li><strong>Static reference point:</strong> A fix place like a pole or house. This is easiest to use.</li>
+          <li><strong>Moving reference point:</strong> Sometimes we use a moving object as reference (like a car). This is more complicated because both objects move.</li>
+        </ul>
+
+        <!-- SVG diagram: stationary ref, moving object -->
+        <div class="visual">
+          <svg class="svg" viewBox="0 0 480 120" role="img" aria-label="Stationary reference and moving object diagram">
+            <title>Reference point diagram</title>
+            <!-- ground -->
+            <rect x="0" y="90" width="480" height="30" fill="#f3fbff"/>
+            <!-- stationary pole -->
+            <rect x="60" y="30" width="8" height="60" fill="#4285f4"/>
+            <text x="40" y="28" font-size="12" fill="#08304a">Pole (reference)</text>
+            <!-- moving object: person represented by circle -->
+            <circle id="person" cx="140" cy="60" r="10" fill="#2db3a6"/>
+            <text x="122" y="82" font-size="12" fill="#08304a">You</text>
+            <!-- arrow showing movement -->
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#08304a"></path>
+              </marker>
+            </defs>
+            <line x1="160" y1="60" x2="300" y2="60" stroke="#08304a" stroke-width="2" marker-end="url(#arrow)"/>
+            <circle cx="320" cy="60" r="10" fill="#ffb86b"/>
+            <text x="304" y="82" font-size="12" fill="#08304a">New place</text>
+          </svg>
+        </div>
+
+        <div class="p">This picture shows a pole (reference) that does not move, and a person who moves from one place to another. We say the person's <strong>position changed</strong> relative to the pole.</div>
+
+        <div class="accordion">
+          <button class="accordion-btn" aria-expanded="false" aria-controls="position-more">Why choose a good reference point?</button>
+          <div class="panel" id="position-more">
+            <p class="p">A clear reference point helps us measure position and motion easily. A moving reference point makes it hard to tell which object moved unless we compare carefully.</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 3. Distance vs Displacement -->
+      <section class="card" id="sec-distdisp" aria-labelledby="distdisp-title">
+        <h3 id="distdisp-title">3. Distance vs Displacement</h3>
+        <p class="lead">These two are different: distance is the path; displacement is the straight line from start to end with direction.</p>
+
+        <div class="side-by-side">
+          <div class="box">
+            <strong>Distance</strong>
+            <ul>
+              <li>Total path traveled.</li>
+              <li>Always positive (never negative).</li>
+              <li>Does not include direction.</li>
+            </ul>
+          </div>
+          <div class="box">
+            <strong>Displacement</strong>
+            <ul>
+              <li>Straight-line distance from start to finish.</li>
+              <li>Has direction (e.g., 10 m north).</li>
+              <li>Can be zero if start and end are same place.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- diagram: zigzag path vs straight arrow -->
+        <div class="box diag">
+          <svg class="svg" viewBox="0 0 420 160" role="img" aria-label="Zigzag path and straight displacement arrow">
+            <title>Distance and displacement example</title>
+            <!-- zigzag path -->
+            <path d="M20 120 Q60 50 100 90 T180 70 T260 110 T340 60" stroke="#4285f4" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <!-- start and end -->
+            <circle cx="20" cy="120" r="4" fill="#08304a"/><text x="8" y="140" font-size="11" fill="#08304a">Start</text>
+            <circle cx="340" cy="60" r="4" fill="#08304a"/><text x="344" y="54" font-size="11" fill="#08304a">End</text>
+            <!-- displacement arrow -->
+            <line x1="20" y1="120" x2="340" y2="60" stroke="#2db3a6" stroke-width="3" stroke-dasharray="6 4" marker-end="url(#endarrow)"/>
+            <defs>
+              <marker id="endarrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#2db3a6"></path>
+              </marker>
+            </defs>
+            <text x="120" y="25" font-size="12" fill="#2db3a6">Displacement (straight)</text>
+            <text x="120" y="140" font-size="12" fill="#4285f4">Distance (path)</text>
+          </svg>
+        </div>
+
+        <div class="accordion">
+          <button class="accordion-btn" aria-expanded="false" aria-controls="dd-more">Quick example</button>
+          <div class="panel" id="dd-more">
+            <p class="p">If you walk around the school courtyard and come back to the start, the distance you walked is the whole path, but your displacement is zero because you ended where you began.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Speed -->
+      <section class="card" id="sec-speed" aria-labelledby="speed-title">
+        <h3 id="speed-title">4. Speed</h3>
+        <p class="lead">Speed tells how fast an object moves.</p>
+
+        <div class="highlight keyidea">
+          <strong>Formula:</strong> <span class="math">speed = distance ÷ time</span>
+        </div>
+
+        <div class="p">Units we often use: <strong>m/s</strong> (meters per second) and <strong>km/h</strong> (kilometers per hour).</div>
+
+        <!-- CSS-drawn speed illustration -->
+        <div class="visual">
+          <div class="box">
+            <svg class="svg" viewBox="0 0 320 120" role="img" aria-label="Speed illustration of car and runner">
+              <title>Speed comparison</title>
+              <!-- road -->
+              <rect x="0" y="90" width="320" height="20" fill="#f3fbff"/>
+              <!-- car (fast) -->
+              <rect x="40" y="50" width="70" height="24" rx="6" fill="#4285f4"/>
+              <circle cx="60" cy="78" r="6" fill="#08304a"/><circle cx="100" cy="78" r="6" fill="#08304a"/>
+              <text x="45" y="46" font-size="12" fill="#08304a">Car: 60 km/h</text>
+              <!-- runner (slower) -->
+              <circle cx="220" cy="70" r="8" fill="#2db3a6"/>
+              <text x="210" y="46" font-size="12" fill="#08304a">Runner: 3 m/s</text>
+            </svg>
+            <div class="small" style="margin-top:6px">Real-life: a car travels much farther than a runner in the same time.</div>
+          </div>
+
+          <div class="box">
+            <strong>Speed comparison table</strong>
+            <table class="smalltable" role="table">
+              <tr><td>Walking</td><td>~1.5 m/s</td></tr>
+              <tr><td>Running</td><td>~3 m/s</td></tr>
+              <tr><td>Bicycle</td><td>~6 m/s</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="p">Constant speed = same distance each second. Changing speed = different distances each second.</div>
+
+        <div class="accordion">
+          <button class="accordion-btn" aria-expanded="false" aria-controls="speed-more">Show tip: converting units</button>
+          <div class="panel" id="speed-more">
+            <p class="p">To convert m/s to km/h, multiply by 3.6. (Because 1 m/s = 3.6 km/h)</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 5. Velocity -->
+      <section class="card" id="sec-velocity" aria-labelledby="velocity-title">
+        <h3 id="velocity-title">5. Velocity</h3>
+        <p class="lead">Velocity is speed with a direction.</p>
+
+        <div class="box">
+          <p class="p">If we say "10 m/s", that's speed. If we say "10 m/s north", that is velocity. Velocity changes when either speed or direction changes.</p>
+        </div>
+
+        <!-- Direction arrows diagram -->
+        <div class="visual">
+          <div class="box">
+            <svg class="svg" viewBox="0 0 300 120" role="img" aria-label="Direction arrows showing velocity changes">
+              <title>Velocity direction arrows</title>
+              <line x1="150" y1="20" x2="150" y2="100" stroke="#08304a" stroke-width="1"/>
+              <line x1="20" y1="60" x2="280" y2="60" stroke="#08304a" stroke-width="1"/>
+              <!-- arrows -->
+              <defs>
+                <marker id="arrv" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L6,3 L0,6 z" fill="#08304a"></path>
+                </marker>
+              </defs>
+              <line x1="30" y1="60" x2="100" y2="60" stroke="#4285f4" stroke-width="4" marker-end="url(#arrv)"/>
+              <text x="30" y="48" font-size="12" fill="#08304a">10 m/s East</text>
+              <line x1="200" y1="60" x2="260" y2="40" stroke="#2db3a6" stroke-width="4" marker-end="url(#arrv)"/>
+              <text x="200" y="48" font-size="12" fill="#08304a">10 m/s NE (different direction)</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="callout remember">
+          <strong>Remember:</strong> Two objects can have the same speed but different velocities if they move in different directions.
+        </div>
+
+      </section>
+
+      <!-- 6. Acceleration (Intro Only) -->
+      <section class="card" id="sec-accel" aria-labelledby="accel-title">
+        <h3 id="accel-title">6. Acceleration (Intro)</h3>
+        <p class="lead">Acceleration is any change in motion: speed up, slow down, or change direction.</p>
+
+        <div class="p">We will not use complex formulas here. For Grade 7, we just need to know when acceleration happens and what it looks like.</div>
+
+        <!-- Graphic: ball speeding up or slowing down -->
+        <div class="visual">
+          <div class="box">
+            <svg class="svg" viewBox="0 0 360 100" role="img" aria-label="Ball accelerating and decelerating">
+              <title>Ball acceleration</title>
+              <!-- two sequences: speeding up (left) and slowing down (right) -->
+              <text x="40" y="18" font-size="12" fill="#08304a">Speeding up →</text>
+              <circle cx="80" cy="60" r="6" fill="#4285f4"/>
+              <circle cx="110" cy="60" r="8" fill="#4285f4"/>
+              <circle cx="150" cy="60" r="10" fill="#4285f4"/>
+              <text x="230" y="18" font-size="12" fill="#08304a">Slowing down →</text>
+              <circle cx="230" cy="60" r="12" fill="#ffb86b"/>
+              <circle cx="260" cy="60" r="8" fill="#ffb86b"/>
+              <circle cx="295" cy="60" r="5" fill="#ffb86b"/>
+            </svg>
+            <div class="small" style="margin-top:6px">Acceleration can be seen when a tricycle speeds up from a stop or slows down at a red light.</div>
+          </div>
+        </div>
+
+        <div class="callout important">
+          <strong>Important:</strong> Acceleration means a change in motion. It does not mean only speeding up.
+        </div>
+
+      </section>
+
+      <!-- 7. Distance–Time Graph -->
+      <section class="card" id="sec-graph" aria-labelledby="graph-title">
+        <h3 id="graph-title">7. Distance–Time Graph (Basic)</h3>
+        <p class="lead">A simple graph helps us see motion over time.</p>
+
+        <div class="p">On a distance–time graph:</div>
+        <ul>
+          <li>The horizontal axis (x) is time.</li>
+          <li>The vertical axis (y) is distance.</li>
+          <li>A straight, slanted line upward = constant speed.</li>
+          <li>A flat (horizontal) line = not moving (rest).</li>
+          <li>Steeper line = faster speed.</li>
+        </ul>
+
+        <!-- ASCII or CSS D-T graph -->
+        <div class="box diag">
+<pre class="ascii">
+Distance (m)
+  |
+  |        /--------  fast
+  |       /
+  |  ----/         slow
+  | /
+  |/             stopped
+  +----------------------- Time (s)
+</pre>
+        </div>
+
+        <div class="p">In the example: the top slanted line is fast (steep). The low slanted line is slow. The flat line shows no movement.</div>
+
+      </section>
+
+      <!-- 8. Real-Life Applications -->
+      <section class="card" id="sec-apps" aria-labelledby="apps-title">
+        <h3 id="apps-title">8. Real-Life Applications of Motion</h3>
+        <p class="lead">Motion is everywhere. Here are examples you know.</p>
+
+        <ul>
+          <li><strong>Riding a bike:</strong> You move forward; speed changes when you pedal harder.</li>
+          <li><strong>Jeepney moving:</strong> It can go at a steady speed on a straight road.</li>
+          <li><strong>Ball rolling:</strong> Slows down because of friction with the floor.</li>
+          <li><strong>Person walking and stopping:</strong> Velocity changes when direction or speed changes.</li>
+          <li><strong>Car slowing at a stoplight:</strong> It has negative acceleration (slows down).</li>
+        </ul>
+
+        <div class="callout miscon">
+          <strong>Misconception Alert:</strong> "If I don't feel moving inside a vehicle, I am not moving." — Not true. You are moving relative to the road and buildings. Use a reference point to tell.
+        </div>
+
+        <div class="accordion">
+          <button class="accordion-btn" aria-expanded="false" aria-controls="apps-more">Real-life tips for class</button>
+          <div class="panel" id="apps-more">
+            <ul>
+              <li>Ask students to watch a jeepney and count how many signs it passes in 10 seconds — then estimate speed (distance ÷ time).</li>
+              <li>Use a student walking across the classroom as a reference example for displacement and distance.</li>
+            </ul>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Closing / footer summary -->
+      <section class="card" id="closing">
+        <h3>Wrap-up</h3>
+        <div class="summary">
+          <p class="p"><strong>In simple terms:</strong> Motion is change in position compared to a reference point. We measure how fast with speed, and we add direction to get velocity. Acceleration is any change in motion.</p>
+          <div class="callout remember">
+            <strong>Remember:</strong> Always pick a clear reference point when you test motion in the simulation.
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <button class="btn" id="open-all">Open all sections</button>
+          <button class="btn secondary" id="close-all">Close all sections</button>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ===================================================================
+       PLACEHOLDER: Insert Part C (JavaScript) here inside a <script>...</script>
+       Replace this comment with the full JS block (Part C).
+       =================================================================== -->
+  <script>
+ /* ============================
+   PART C — JavaScript for Motion Study Guide
+   - Single IIFE to avoid global pollution
+   - Accordion controls for collapsible sections
+   - Table-of-contents smooth scrolling
+   - "Open all" / "Close all" controls
+   - Reveal toggles for answer/explanations (where used)
+   - Respect prefers-reduced-motion
+   ============================ */
+(function(){
+  'use strict';
+  // Utility helpers
+  function $all(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); }
+  function $$(sel, ctx){ return (ctx||document).querySelector(sel); }
+
+  // Respect reduced motion
+  var prefersReduced = false;
+  try {
+    prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch(err) { prefersReduced = false; }
+
+  // Animate on load: add visible classes after small delay
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){
+      $all('.fade-in').forEach(function(el){ el.classList.add('visible'); });
+      $all('.icon-fade').forEach(function(el){ el.classList.add('visible'); });
+    }, 120);
+  });
+
+  // Accordion behavior
+  $all('.accordion-btn').forEach(function(btn){
+    var targetId = btn.getAttribute('aria-controls');
+    var panel = document.getElementById(targetId);
+    if(!panel) return;
+    btn.addEventListener('click', function(){
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      if(expanded){
+        btn.setAttribute('aria-expanded','false');
+        panel.classList.remove('open');
+      } else {
+        btn.setAttribute('aria-expanded','true');
+        panel.classList.add('open');
+      }
+    });
+  });
+
+  // TOC smooth scroll
+  $all('.toc-btn').forEach(function(tb){
+    tb.addEventListener('click', function(){
+      var target = tb.dataset.scrollTo;
+      var el = document.getElementById(target);
+      if(!el) return;
+      var top = el.getBoundingClientRect().top + window.pageYOffset - 80; // offset for sticky header
+      window.scrollTo({ top: top, behavior: prefersReduced ? 'auto' : 'smooth' });
+      // focus the section for keyboard users
+      setTimeout(function(){ el.setAttribute('tabindex','-1'); el.focus({preventScroll:true}); }, 420);
+    });
+  });
+
+  // Open all / Close all controls
+  var openAll = document.getElementById('open-all');
+  var closeAll = document.getElementById('close-all');
+  if(openAll){
+    openAll.addEventListener('click', function(){
+      $all('.accordion-btn').forEach(function(btn){
+        btn.setAttribute('aria-expanded','true');
+        var pid = btn.getAttribute('aria-controls');
+        var p = document.getElementById(pid);
+        if(p) p.classList.add('open');
+      });
+    });
+  }
+  if(closeAll){
+    closeAll.addEventListener('click', function(){
+      $all('.accordion-btn').forEach(function(btn){
+        btn.setAttribute('aria-expanded','false');
+        var pid = btn.getAttribute('aria-controls');
+        var p = document.getElementById(pid);
+        if(p) p.classList.remove('open');
+      });
+    });
+  }
+
+  // Show/hide of quick reveal answers (used in earlier template)
+  $all('[data-action="show-answer"]').forEach(function(btn){
+    btn.addEventListener('click', function(ev){
+      var target = btn.dataset.target;
+      var ans = document.getElementById('ans-'+target);
+      if(!ans) return;
+      ans.classList.toggle('show');
+    });
+  });
+
+  // small keyboard accessibility: allow Enter/Space on accordion buttons
+  $all('.accordion-btn').forEach(function(btn){
+    btn.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        btn.click();
+      }
+    });
+  });
+
+  // Defensive: handle hash navigation (if someone links to #sec-speed etc)
+  window.addEventListener('hashchange', function(){
+    var id = location.hash && location.hash.substring(1);
+    if(!id) return;
+    var el = document.getElementById(id);
+    if(el){
+      var top = el.getBoundingClientRect().top + window.pageYOffset - 72;
+      window.scrollTo({top: top, behavior: prefersReduced ? 'auto' : 'smooth'});
+    }
+  });
+
+  // Small fix: ensure SVGs with focusable elements don't trap keyboard
+  $all('svg').forEach(function(svg){
+    svg.setAttribute('focusable','false');
+  });
+
+  // If the browser doesn't support smooth scroll, degrade gracefully
+  // No need for polyfills: modern browsers have support; older devices will use auto.
+
+})(); // end IIFE
+
+  </script>
+</body>
+</html>

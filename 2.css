@@ -1,0 +1,159 @@
+/* ===========================
+   PART B — Styles for Motion Study Guide (Ultra Extended)
+   - Soft UI, rounded corners
+   - Colors: blue #4285f4, teal #2db3a6, white, light gray
+   - Responsive styles and accessible sizes
+   - Smooth fade-in animations, accordion transitions
+   =========================== */
+
+/* Root variables and base */
+:root{
+  --blue:#4285f4;
+  --teal:#2db3a6;
+  --bg:#f6f8fb;
+  --card:#ffffff;
+  --muted:#55606b;
+  --accent: linear-gradient(90deg,#4285f4,#4bc0ff);
+  --radius:16px;
+  --shadow: 0 10px 30px rgba(6,59,100,0.06);
+  --glass: rgba(255,255,255,0.6);
+  --ease: cubic-bezier(.16,.84,.25,1);
+  --maxw:1200px;
+  --focus: 3px solid rgba(66,133,244,0.12);
+}
+
+/* Basic reset */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0}
+body{
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg,#e8f6ff 0%, var(--bg) 30%);
+  color:#072034;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height:1.5;
+  padding:18px;
+}
+
+/* App container */
+.app{
+  max-width:var(--maxw);
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* Sticky header */
+.sticky-header{
+  position:sticky;top:12px;z-index:80;
+  background:linear-gradient(180deg,rgba(255,255,255,0.7), rgba(255,255,255,0.6));
+  backdrop-filter: blur(6px);
+  border-radius:12px;padding:12px;border:1px solid rgba(6,59,100,0.06);
+  box-shadow: 0 8px 24px rgba(6,59,100,0.03);
+}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{
+  width:64px;height:64px;border-radius:14px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;
+  box-shadow:0 8px 22px rgba(66,133,244,0.12);
+}
+.main-title{margin:0;font-size:1.2rem;color:#063b64}
+.lead{margin:4px 0;color:var(--muted)}
+
+/* Table of contents (TOC) buttons */
+.toc{display:flex;gap:8px;flex-wrap:wrap}
+.toc-btn{
+  background:transparent;border:1px solid rgba(6,59,100,0.05);padding:8px 10px;border-radius:10px;
+  cursor:pointer;color:#08304a;font-weight:700;font-size:13px;
+}
+.toc-btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(6,59,100,0.04)}
+
+/* Main content layout */
+.content{
+  display:grid;grid-template-columns:1fr;gap:16px;
+}
+@media(min-width:980px){
+  .content{grid-template-columns: 1fr 360px;align-items:start}
+}
+
+/* Card styles */
+.card{
+  background:var(--card);border-radius:var(--radius);padding:14px;border:1px solid rgba(6,59,100,0.04);
+  box-shadow:var(--shadow);
+  transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(6,59,100,0.06)}
+
+/* Headings */
+h2,h3{margin:0;color:#063b64}
+h3{font-size:1.02rem}
+.p{margin:10px 0;color:#0d2b3a}
+.small{font-size:0.95rem;color:var(--muted)}
+
+/* Highlight boxes */
+.highlight{padding:10px;border-radius:10px;background:linear-gradient(180deg,rgba(66,133,244,0.06), rgba(66,133,244,0.02));border:1px solid rgba(66,133,244,0.06);margin:8px 0}
+.box{border-radius:10px;padding:10px;background:linear-gradient(180deg,#ffffff,#fbfdff);border:1px solid rgba(6,59,100,0.04);box-shadow:0 6px 18px rgba(6,59,100,0.03)}
+.side-by-side{display:flex;gap:12px;flex-wrap:wrap}
+.side-by-side .box{flex:1;min-width:220px}
+
+/* ASCII diagram */
+.ascii{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;background:#0b1220;color:#dbeafe;padding:10px;border-radius:8px;overflow:auto;border:1px solid rgba(124,185,255,0.06)}
+
+/* Visuals */
+.visual{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.svg{max-width:100%;height:auto;display:block}
+.diag{margin-top:10px}
+
+/* Callouts */
+.callouts{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.callout{flex:1;padding:10px;border-radius:10px;background:#f3fbff;border:1px solid rgba(66,133,244,0.04)}
+.callout.remember{background:linear-gradient(180deg,#f0fff7,#e9fff6);border-color:rgba(45,179,166,0.06)}
+.callout.real{background:linear-gradient(180deg,#fff8e9,#fff6e9);border-color:rgba(255,170,0,0.06)}
+.callout.miscon{background:linear-gradient(180deg,#fff0f3,#fff0f6);border-color:rgba(255,80,120,0.06)}
+.callout.important{background:linear-gradient(180deg,#fff9f2,#fff9f7);border-color:rgba(255,120,0,0.06)}
+
+/* Accordion */
+.accordion{margin-top:10px}
+.accordion-btn{
+  width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:10px;border:1px solid rgba(6,59,100,0.04);background:transparent;font-weight:700;cursor:pointer
+}
+.panel{overflow:hidden;max-height:0;transition:max-height 360ms var(--ease), opacity 260ms var(--ease);opacity:0;padding:0 10px}
+.panel.open{opacity:1;padding:10px 10px;max-height:1000px}
+
+/* Quiz-like reveal area (not quiz) */
+.btn{padding:8px 12px;border-radius:10px;border:0;background:var(--blue);color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(66,133,244,0.12)}
+.btn.secondary{background:#eef6ff;color:var(--blue);border:1px solid rgba(66,133,244,0.12)}
+.btn:focus{outline:var(--focus);outline-offset:4px}
+
+/* Table */
+.smalltable{width:100%;border-collapse:collapse}
+.smalltable td{padding:6px 8px;border-bottom:1px dashed rgba(6,59,100,0.04);color:#08304a}
+
+/* Summary & controls */
+.summary{padding:12px;border-radius:10px;background:linear-gradient(180deg,#eef9ff,#ffffff);border:1px solid rgba(66,133,244,0.05)}
+.hint{font-size:0.95rem;color:var(--muted);margin-top:8px}
+
+/* Footer */
+.footer{margin-top:12px;text-align:center;color:var(--muted)}
+
+/* Animations */
+.fade-in{opacity:0;transform:translateY(8px);transition:opacity 420ms var(--ease), transform 420ms var(--ease)}
+.fade-in.visible{opacity:1;transform:none}
+.icon-fade{opacity:0;transform:translateY(6px);transition:all 360ms var(--ease)}
+.icon-fade.visible{opacity:1;transform:none}
+
+/* Accessibility considerations */
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important}
+}
+
+/* Responsive tweaks */
+@media (max-width:760px){
+  .header-inner{flex-direction:column;align-items:flex-start}
+  .toc{display:flex;overflow:auto}
+  .toc-btn{font-size:12px;padding:8px}
+  .content{grid-template-columns:1fr}
+  .side-by-side{flex-direction:column}
+}

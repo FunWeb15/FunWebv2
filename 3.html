@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Motion — Solving Section (Grade 7)</title>
+  <meta name="description" content="Solving Section for Motion (Grade 7): step-by-step examples, practice problems, application tasks, visuals, and quick checks. Offline, interactive, student-friendly." />
+
+  <!--
+    Motion Solving Section
+    Single-file HTML containing inline CSS and JavaScript.
+    Author: Expert Grade 7 curriculum & front-end developer.
+    Purpose: Teach students how to solve distance / speed / time problems with interactive reveals.
+    Works offline, no external assets.
+  -->
+
+  <style>
+    /* ===========================
+       Styles — Motion Solving Section
+       - Soft UI cards
+       - Colors: Blue #4285f4, Teal, Light gray, White
+       - Responsive, mobile-first
+       - Smooth transitions and accessible sizes
+       =========================== */
+
+    :root{
+      --blue:#4285f4;
+      --teal:#2db3a6;
+      --bg:#f5f8fb;
+      --card:#ffffff;
+      --muted:#51606a;
+      --accent: linear-gradient(90deg,#4285f4,#4bc0ff);
+      --radius:16px;
+      --shadow: 0 14px 30px rgba(22,60,100,0.06);
+      --ease: cubic-bezier(.16,.84,.25,1);
+      --maxw:980px;
+      --gap:14px;
+      --panel-padding:14px;
+      --focus: 3px solid rgba(66,133,244,0.14);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;background:var(--bg);color:#052933;-webkit-font-smoothing:antialiased}
+    body{padding:18px;display:flex;justify-content:center}
+
+    /* App container */
+    .app{
+      width:100%;
+      max-width:var(--maxw);
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
+    }
+
+    /* Header */
+    header.header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.96));
+      padding:12px;border-radius:12px;border:1px solid rgba(6,59,100,0.04);
+      box-shadow:0 8px 22px rgba(6,59,100,0.03);
+    }
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{
+      width:64px;height:64px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;
+      box-shadow:0 8px 20px rgba(66,133,244,0.12);
+    }
+    .title{margin:0}
+    .subtitle{margin:0;color:var(--muted);font-size:0.95rem}
+
+    /* Layout */
+    main{display:grid;grid-template-columns:1fr;gap:var(--gap)}
+    @media(min-width:880px){
+      main{grid-template-columns: 1fr 360px;}
+    }
+
+    /* Card style */
+    .card{
+      background:var(--card);border-radius:var(--radius);padding:var(--panel-padding);box-shadow:var(--shadow);border:1px solid rgba(6,59,100,0.04);
+    }
+    .panel-title{margin:0;font-size:1.05rem;color:#053a4b}
+    p{margin:8px 0;color:#0b3030}
+    .lead{font-weight:600;color:#07404a;margin-bottom:8px}
+
+    /* Small utility UI */
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .btn{
+      background:var(--blue);color:#fff;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700;box-shadow:0 8px 20px rgba(66,133,244,0.10)
+    }
+    .btn.secondary{background:#eef6ff;color:var(--blue);border:1px solid rgba(66,133,244,0.10)}
+    .btn:focus{outline:var(--focus);outline-offset:4px}
+
+    /* Highlight boxes */
+    .highlight{padding:10px;border-radius:12px;background:linear-gradient(180deg,rgba(66,133,244,0.06),rgba(66,133,244,0.02));border:1px solid rgba(66,133,244,0.06);margin:8px 0}
+    .key{background:linear-gradient(180deg,#e8fbff,#f8ffff);border:1px solid rgba(45,179,166,0.06)}
+    .hint{background:linear-gradient(180deg,#fff7e9,#fffdf8);border:1px solid rgba(255,170,0,0.06)}
+    .danger{background:linear-gradient(180deg,#fff0f3,#fff6f9);border:1px solid rgba(255,80,120,0.06)}
+
+    /* Formula box */
+    .formula{padding:10px;border-radius:10px;background:#f7f9fb;border-left:4px solid var(--blue);font-weight:700}
+
+    /* Sections in right column */
+    aside.right{display:flex;flex-direction:column;gap:var(--gap)}
+    .small{font-size:0.95rem;color:var(--muted)}
+
+    /* Accordion & reveal */
+    .accordion .acc-btn{
+      width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:10px;border:1px solid rgba(6,59,100,0.04);background:transparent;cursor:pointer;font-weight:700;
+    }
+    .acc-panel{
+      overflow:hidden;max-height:0;opacity:0;transition:max-height 420ms var(--ease), opacity 320ms var(--ease);padding:0 6px;
+    }
+    .acc-panel.open{max-height:1200px;opacity:1;padding:10px 6px}
+
+    /* Boxed final answer */
+    .boxed{border:2px dashed rgba(6,59,100,0.06);padding:10px;border-radius:8px;background:#fbfeff;font-weight:700;margin:10px 0}
+
+    /* Tables */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;text-align:left;border-bottom:1px solid rgba(6,59,100,0.04)}
+    th{background:#fbfeff}
+
+    /* ASCII pre */
+    pre.ascii{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,"Roboto Mono",monospace;background:#001e26;color:#cdeff6;padding:10px;border-radius:8px;overflow:auto}
+
+    /* Visual SVG container */
+    .visual{border-radius:10px;padding:8px;background:linear-gradient(180deg,#ffffff,#fbfeff);border:1px solid rgba(6,59,100,0.03)}
+
+    /* small text */
+    .note{font-size:.95rem;color:var(--muted)}
+
+    /* speed table */
+    .speed-table th{font-weight:800}
+
+    /* show/hide transitions for small reveals inside */
+    .reveal{overflow:hidden;max-height:0;opacity:0;transition:max-height 420ms var(--ease), opacity 300ms var(--ease)}
+    .reveal.open{max-height:600px;opacity:1}
+
+    /* footer */
+    footer{font-size:0.9rem;color:var(--muted);text-align:center;padding:8px}
+
+    /* Accessibility: reduced-motion */
+    @media (prefers-reduced-motion: reduce){
+      .acc-panel,.reveal{transition:none}
+    }
+    /* Responsive tweaks */
+    @media(max-width:800px){
+      .logo{width:56px;height:56px}
+      main{grid-template-columns:1fr}
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app" role="main" aria-labelledby="page-title">
+
+    <!-- Header -->
+    <header class="header" role="banner">
+      <div class="brand" aria-hidden="false">
+        <div class="logo" aria-hidden="true">MOTION</div>
+        <div>
+          <h1 id="page-title" class="title">Solving Section — Motion (Speed • Distance • Time)</h1>
+          <p class="subtitle">Step-by-step examples, interactive practice, and real-life Filipino problems to build your skills.</p>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" id="open-all">Open all solutions</button>
+        <button class="btn secondary" id="close-all">Close all solutions</button>
+      </div>
+    </header>
+
+    <!-- Main content and right column -->
+    <main>
+
+      <!-- LEFT / MAIN COLUMN -->
+      <section>
+
+        <!-- 1. Introduction -->
+        <article class="card" id="intro">
+          <h2 class="panel-title">1. Introduction to Solving Motion Problems</h2>
+          <p class="lead">Why do we solve speed-distance-time problems?</p>
+          <p>When you know how far and how long, you can find how fast something was moving. Solving these problems helps you understand everyday motion — like how long a jeepney ride will take, or how fast you must walk to reach school on time.</p>
+
+          <div class="row" style="align-items:flex-start;margin-top:8px">
+            <!-- small SVG runner icon -->
+            <div class="visual" style="width:84px;height:84px;display:flex;align-items:center;justify-content:center">
+              <svg viewBox="0 0 48 48" width="64" height="64" role="img" aria-label="Running stick figure icon">
+                <title>Running icon</title>
+                <!-- head -->
+                <circle cx="10" cy="8" r="3" fill="#4285f4"/>
+                <!-- body -->
+                <path d="M12 11 L15 18" stroke="#052933" stroke-width="2" stroke-linecap="round"/>
+                <!-- legs -->
+                <path d="M15 18 L12 26" stroke="#052933" stroke-width="2" stroke-linecap="round"/>
+                <path d="M15 18 L20 24" stroke="#052933" stroke-width="2" stroke-linecap="round"/>
+                <!-- arm -->
+                <path d="M13 14 L18 12" stroke="#052933" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+
+            <div style="flex:1">
+              <p><strong>In simple terms:</strong> solving motion problems helps you predict time, distance, or speed in real situations. This means you can plan a trip, time a race, or check results from a simulation.</p>
+              <div class="key highlight">
+                <strong>Real-Life Examples:</strong>
+                <ul>
+                  <li>Walking to school — how long will it take if you walk 2 km?</li>
+                  <li>Jeepney ride along a route — how fast did the jeepney move between stops?</li>
+                  <li>Biking around the barangay — how far will you go in 15 minutes?</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </article>
+
+        <!-- 2. Formula Toolbox -->
+        <article class="card" id="toolbox" style="margin-top:8px">
+          <h2 class="panel-title">2. Formula Toolbox</h2>
+          <p class="lead">Three simple formulas to remember</p>
+
+          <div class="formula" aria-hidden="false">
+            <div><strong>Speed = Distance ÷ Time</strong> — Use this if you know distance and time and need to find speed.</div>
+            <div style="margin-top:8px"><strong>Distance = Speed × Time</strong> — Use this if you know speed and time and need distance.</div>
+            <div style="margin-top:8px"><strong>Time = Distance ÷ Speed</strong> — Use this if you know distance and speed and need time.</div>
+          </div>
+
+          <div style="margin-top:8px" class="note">Tip: Always check the units. If distance is in meters and time in seconds, the speed is m/s. If distance is in kilometers and time in hours, the speed is km/h.</div>
+        </article>
+
+        <!-- 3. Guided Examples -->
+        <article class="card" id="examples" style="margin-top:8px">
+          <h2 class="panel-title">3. Guided Examples (Step-by-step)</h2>
+          <p class="lead">We solve problems slowly and clearly — each step explains why we do it.</p>
+
+          <!-- Example 1: Solve for Speed -->
+          <div class="card" style="padding:12px;margin-bottom:12px">
+            <strong>Example 1 — Find Speed (Walking to School)</strong>
+            <p><strong>Problem:</strong> Maria walks 1.8 kilometers to school in 30 minutes. What is her speed in m/s?</p>
+
+            <div class="boxed">Given: distance = 1.8 km, time = 30 min. Required: speed in m/s.</div>
+
+            <div class="note"><strong>Step 1:</strong> Convert units so they match. 1.8 km = 1800 m. 30 minutes = 30 × 60 = 1800 seconds.</div>
+            <div class="note"><strong>Step 2 (Formula):</strong> speed = distance ÷ time</div>
+            <div class="note"><strong>Substitution:</strong> speed = 1800 m ÷ 1800 s</div>
+            <div class="boxed">Solution: speed = 1 m/s</div>
+
+            <pre class="ascii">Mini diagram:
+[School] ----------------- (1.8 km) ----------------- [Home]
+Maria walks from Home to School in 30 min → Speed = 1 m/s</pre>
+
+            <p><strong>This means that</strong> Maria moves 1 meter every second.</p>
+            <p class="note"><strong>Real-life connection:</strong> A steady walking pace (~1 m/s) helps you estimate how long it takes to reach school.</p>
+          </div>
+
+          <!-- Example 2: Solve for Distance -->
+          <div class="card" style="padding:12px;margin-bottom:12px">
+            <strong>Example 2 — Find Distance (Jeepney on EDSA)</strong>
+            <p><strong>Problem:</strong> A jeepney travels at 40 km/h for 1.5 hours. How far does it go?</p>
+
+            <div class="boxed">Given: speed = 40 km/h, time = 1.5 h. Required: distance in km.</div>
+
+            <div class="note"><strong>Step 1 (Formula):</strong> distance = speed × time</div>
+            <div class="note"><strong>Substitution:</strong> distance = 40 km/h × 1.5 h</div>
+            <div class="boxed">Solution: distance = 60 km</div>
+
+            <pre class="ascii">Mini diagram:
+[Start] --- 60 km --- [End]
+Jeepney at 40 km/h for 1.5 h → 60 km</pre>
+
+            <p><strong>This means that</strong> the jeepney travels 60 kilometers in that time (example for long route planning).</p>
+            <p class="note"><strong>Real-life connection:</strong> Use this to decide how early to leave if your trip is long.</p>
+          </div>
+
+          <!-- Example 3: Solve for Time -->
+          <div class="card" style="padding:12px;margin-bottom:12px">
+            <strong>Example 3 — Find Time (Student running on track)</strong>
+            <p><strong>Problem:</strong> A student runs 400 m around the track at 5 m/s. How long does it take?</p>
+
+            <div class="boxed">Given: distance = 400 m, speed = 5 m/s. Required: time (s)</div>
+
+            <div class="note"><strong>Step 1 (Formula):</strong> time = distance ÷ speed</div>
+            <div class="note"><strong>Substitution:</strong> time = 400 ÷ 5</div>
+            <div class="boxed">Solution: time = 80 s (1 minute 20 seconds)</div>
+
+            <pre class="ascii">Mini diagram:
+[Start] ---------------- 400 m ---------------- [Finish]
+At 5 m/s → time = 80 s</pre>
+
+            <p><strong>This means that</strong> the runner completes one lap in one minute and twenty seconds at that speed.</p>
+            <p class="note"><strong>Real-life connection:</strong> Coaches use these calculations to measure performance.</p>
+          </div>
+
+        </article>
+
+        <!-- 4. Mini Challenge Problems -->
+        <article class="card" id="mini-challenges" style="margin-top:8px">
+          <h2 class="panel-title">4. Mini Challenge Problems (Try these)</h2>
+          <p class="lead">Short problems — click "Show Solution" to reveal steps.</p>
+
+          <!-- create 5 problems with reveal buttons -->
+          <div class="accordion">
+
+            <!-- Problem 1 -->
+            <div style="margin-bottom:10px">
+              <div class="acc-btn" role="button" aria-expanded="false" data-target="mc1">1) A tricycle goes 2 km in 10 minutes. What is its speed in km/h? <span style="font-weight:600">[Show Solution ▼]</span></div>
+              <div class="acc-panel" id="mc1">
+                <div class="note"><strong>Step 1:</strong> Convert minutes to hours: 10 min = 10/60 = 1/6 h ≈ 0.1667 h.</div>
+                <div class="note"><strong>Step 2 (Formula):</strong> speed = distance ÷ time = 2 km ÷ (1/6 h) = 2 × 6 = 12 km/h.</div>
+                <div class="boxed">Answer: 12 km/h</div>
+                <div class="small">This means the tricycle moves 12 kilometers in one hour at that pace.</div>
+              </div>
+            </div>
+
+            <!-- Problem 2 -->
+            <div style="margin-bottom:10px">
+              <div class="acc-btn" role="button" aria-expanded="false" data-target="mc2">2) A student cycles 9 km in 30 minutes. What is her speed in m/s? <span style="font-weight:600">[Show Solution ▼]</span></div>
+              <div class="acc-panel" id="mc2">
+                <div class="note">Convert 9 km to meters: 9000 m. Convert 30 min to seconds: 1800 s.</div>
+                <div class="note">speed = 9000 ÷ 1800 = 5 m/s.</div>
+                <div class="boxed">Answer: 5 m/s</div>
+                <div class="small">Good job — converting units first makes the math easy.</div>
+              </div>
+            </div>
+
+            <!-- Problem 3 -->
+            <div style="margin-bottom:10px">
+              <div class="acc-btn" role="button" aria-expanded="false" data-target="mc3">3) A car travels 150 km at 75 km/h. How long does it take? <span style="font-weight:600">[Show Solution ▼]</span></div>
+              <div class="acc-panel" id="mc3">
+                <div class="note">time = distance ÷ speed = 150 ÷ 75 = 2 hours.</div>
+                <div class="boxed">Answer: 2 h</div>
+                <div class="small">This is a simple divide problem — no unit changes needed if both are in km and km/h.</div>
+              </div>
+            </div>
+
+            <!-- Problem 4 -->
+            <div style="margin-bottom:10px">
+              <div class="acc-btn" role="button" aria-expanded="false" data-target="mc4">4) Two students start at the same point. A walks at 1.5 m/s and B runs at 3 m/s. After 10 seconds how far apart are they? <span style="font-weight:600">[Show Solution ▼]</span></div>
+              <div class="acc-panel" id="mc4">
+                <div class="note">Distance A = 1.5 × 10 = 15 m. Distance B = 3 × 10 = 30 m.</div>
+                <div class="note">Difference = 30 − 15 = 15 m.</div>
+                <div class="boxed">Answer: 15 m apart</div>
+                <div class="small">This shows how different speeds lead to separation over time.</div>
+              </div>
+            </div>
+
+            <!-- Problem 5 -->
+            <div style="margin-bottom:10px">
+              <div class="acc-btn" role="button" aria-expanded="false" data-target="mc5">5) A jeepney covers 24 km in 30 minutes. What is its average speed in km/h? <span style="font-weight:600">[Show Solution ▼]</span></div>
+              <div class="acc-panel" id="mc5">
+                <div class="note">30 minutes = 0.5 hours. speed = 24 ÷ 0.5 = 48 km/h.</div>
+                <div class="boxed">Answer: 48 km/h</div>
+                <div class="small">Average speed helps plan arrival times under normal conditions.</div>
+              </div>
+            </div>
+
+          </div>
+        </article>
+
+        <!-- 5. Application Problems -->
+        <article class="card" id="apps" style="margin-top:8px">
+          <h2 class="panel-title">5. Application Problems (Think & Solve)</h2>
+          <p class="lead">Longer problems — read carefully, draw a small picture, then solve.</p>
+
+          <!-- App 1 -->
+          <div style="margin-bottom:12px">
+            <div class="acc-btn" role="button" aria-expanded="false" data-target="app1">A jeepney and a car start from the same point. The jeepney goes at 40 km/h and the car at 60 km/h. After 2 hours, how far ahead is the car? <span style="font-weight:600">[Show Solution ▼]</span></div>
+            <div class="acc-panel" id="app1">
+              <div class="note">Distance jeepney = 40 × 2 = 80 km. Distance car = 60 × 2 = 120 km.</div>
+              <div class="note">Difference = 120 − 80 = 40 km.</div>
+              <div class="boxed">Answer: The car is 40 km ahead.</div>
+              <div class="small">Draw two lines showing distances to visualize who is ahead.</div>
+            </div>
+          </div>
+
+          <!-- App 2 (change speed) -->
+          <div style="margin-bottom:12px">
+            <div class="acc-btn" role="button" aria-expanded="false" data-target="app2">A cyclist travels 15 km at 10 km/h, then increases speed to 15 km/h and travels another 15 km. What is the average speed for the whole trip? <span style="font-weight:600">[Show Solution ▼]</span></div>
+            <div class="acc-panel" id="app2">
+              <div class="note">Time for first part = 15 ÷ 10 = 1.5 h. Time for second part = 15 ÷ 15 = 1.0 h. Total distance = 30 km. Total time = 2.5 h.</div>
+              <div class="note">Average speed = total distance ÷ total time = 30 ÷ 2.5 = 12 km/h.</div>
+              <div class="boxed">Answer: 12 km/h</div>
+              <div class="small">Average speed is not the same as the speed in each part — compute with totals.</div>
+            </div>
+          </div>
+
+          <!-- App 3 (relative motion) -->
+          <div style="margin-bottom:12px">
+            <div class="acc-btn" role="button" aria-expanded="false" data-target="app3">Two students walk toward each other from points 200 m apart. One walks at 1.5 m/s and the other at 1.0 m/s. How long until they meet? <span style="font-weight:600">[Show Solution ▼]</span></div>
+            <div class="acc-panel" id="app3">
+              <div class="note">Their closing speed = 1.5 + 1.0 = 2.5 m/s (because they move toward each other).</div>
+              <div class="note">Time = distance ÷ closing speed = 200 ÷ 2.5 = 80 s.</div>
+              <div class="boxed">Answer: They meet after 80 seconds (1 minute 20 seconds).</div>
+              <div class="small">Relative motion adds speeds when moving toward each other.</div>
+            </div>
+          </div>
+
+        </article>
+
+        <!-- 6. Speed Comparison Table -->
+        <article class="card" id="speed-table" style="margin-top:8px">
+          <h2 class="panel-title">6. Speed Comparison Table</h2>
+          <p class="lead">Typical speeds — useful estimates for problems.</p>
+          <table class="speed-table" role="table" aria-label="Speed comparison">
+            <thead>
+              <tr><th>Object</th><th>Typical Speed</th><th>Why It Matters</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Walking student</td><td>~1.4 m/s (≈5 km/h)</td><td>Helps estimate travel time to school</td></tr>
+              <tr><td>Running athlete</td><td>~4–6 m/s (≈15–22 km/h)</td><td>Used in races and PE timing</td></tr>
+              <tr><td>Bicycle</td><td>~5–8 m/s (≈18–30 km/h)</td><td>Everyday transportation in barangays</td></tr>
+              <tr><td>Jeepney</td><td>~30–50 km/h (city average)</td><td>Common city travel speed</td></tr>
+              <tr><td>Car</td><td>~60–100 km/h (depends on road)</td><td>Highway vs. city planning</td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <!-- 7. Visual Aids Section -->
+        <article class="card" id="visuals" style="margin-top:8px">
+          <h2 class="panel-title">7. Visual Aids (D–T Graphs & Arrows)</h2>
+          <p class="lead">See how motion looks on graphs and diagrams.</p>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <!-- ASCII D-T graph -->
+            <div style="flex:1;min-width:240px" class="box visual">
+              <strong>Distance–Time (ASCII)</strong>
+              <pre class="ascii">
+Distance (m)
+  |
+  |        /--------  fast
+  |       /
+  |  ----/         slow
+  | /
+  |/             stopped
+  +----------------------- Time (s)
+  </pre>
+              <div class="small">A steeper line = faster. A flat line = stopped.</div>
+            </div>
+
+            <!-- SVG small arrows showing speed difference -->
+            <div style="flex:1;min-width:240px" class="visual">
+              <strong style="display:block;margin-bottom:6px">Speed arrows</strong>
+              <svg viewBox="0 0 320 80" class="svg" role="img" aria-label="Speed arrows diagram">
+                <title>Speed arrows</title>
+                <!-- slow -->
+                <line x1="20" y1="20" x2="80" y2="20" stroke="#2db3a6" stroke-width="6" stroke-linecap="round" marker-end="url(#arr)"/>
+                <text x="20" y="14" font-size="11" fill="#08304a">Slow</text>
+                <!-- medium -->
+                <line x1="20" y1="40" x2="140" y2="40" stroke="#4285f4" stroke-width="8" stroke-linecap="round" marker-end="url(#arr)"/>
+                <text x="20" y="34" font-size="11" fill="#08304a">Medium</text>
+                <!-- fast -->
+                <line x1="20" y1="60" x2="260" y2="60" stroke="#ff8c42" stroke-width="10" stroke-linecap="round" marker-end="url(#arr)"/>
+                <text x="20" y="54" font-size="11" fill="#08304a">Fast</text>
+
+                <defs>
+                  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#08304a"/>
+                  </marker>
+                </defs>
+              </svg>
+            </div>
+          </div>
+
+          <div style="margin-top:8px" class="note">Use graphs to compare motion. Label axes: time (horizontal) and distance (vertical).</div>
+        </article>
+
+        <!-- 8. Common Mistakes -->
+        <article class="card" id="mistakes" style="margin-top:8px">
+          <h2 class="panel-title">8. Common Mistakes & How to Fix Them</h2>
+
+          <ul>
+            <li><strong>❌ Confusing speed with distance</strong> — <em>Fix:</em> Speed tells how fast; distance tells how far. Use formulas to separate them.</li>
+            <li><strong>❌ Forgetting to convert units</strong> — <em>Fix:</em> Always put everything in the same units (m & s or km & h) before calculating.</li>
+            <li><strong>❌ Mixing minutes and seconds</strong> — <em>Fix:</em> Convert minutes to seconds or hours to minutes first.</li>
+            <li><strong>❌ Thinking faster always means farther</strong> — <em>Fix:</em> Distance also depends on time. Fast for a short time may be less distance than slow for a long time.</li>
+          </ul>
+
+          <div class="hint danger" style="margin-top:8px"><strong>Check Your Work:</strong> After solving, ask: Are the units correct? Does the answer make sense (is it too big or too small)?</div>
+        </article>
+
+        <!-- 9. Summary -->
+        <article class="card" id="summary" style="margin-top:8px">
+          <h2 class="panel-title">9. Summary</h2>
+          <p class="lead">Quick recap</p>
+          <ul>
+            <li><strong>Motion</strong> is change in position compared to a reference point.</li>
+            <li><strong>Speed</strong> = distance ÷ time. Use matching units.</li>
+            <li><strong>Distance</strong> = speed × time. <strong>Time</strong> = distance ÷ speed.</li>
+            <li><strong>Draw a small diagram</strong> and convert units first — this helps avoid mistakes.</li>
+          </ul>
+
+          <div style="margin-top:8px" class="note">You are ready to use the simulation. Try predicting results first, then test them in the animation and compare your answers.</div>
+        </article>
+
+      </section>
+
+      <!-- RIGHT COLUMN (quick references & tips) -->
+      <aside class="card right" aria-label="Quick reference" style="min-width:260px">
+        <div>
+          <h3 class="panel-title">Quick Reference</h3>
+          <div class="formula" style="margin-top:8px">
+            <div>Speed = Distance ÷ Time</div>
+            <div style="margin-top:6px">Distance = Speed × Time</div>
+            <div style="margin-top:6px">Time = Distance ÷ Speed</div>
+          </div>
+
+          <div style="margin-top:12px">
+            <h4 style="margin:6px 0">Unit reminders</h4>
+            <ul class="small">
+              <li>1 km = 1000 m</li>
+              <li>1 hour = 60 minutes = 3600 seconds</li>
+              <li>m/s → km/h multiply by 3.6</li>
+            </ul>
+          </div>
+
+          <div style="margin-top:12px" class="key">
+            <strong>Key Idea:</strong>
+            <p class="small">Always convert units first. Draw diagram. Use the right formula.</p>
+          </div>
+
+          <div style="margin-top:12px">
+            <h4 style="margin:6px 0">Quick checks</h4>
+            <ol class="small">
+              <li>Are units the same? (Yes → proceed)</li>
+              <li>Does answer have correct unit? (m/s, km/h, s, etc.)</li>
+              <li>Does the number make sense?</li>
+            </ol>
+          </div>
+
+        </div>
+      </aside>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p class="small">Teacher tip: Ask students to predict answers, then reveal solutions and compare. Encourage unit checks and drawing diagrams.</p>
+    </footer>
+
+  </div>
+
+  <!-- JavaScript: interactive accordions & reveals -->
+  <script>
+    (function(){
+      'use strict';
+      try {
+        // Helpers
+        function $all(sel, ctx){ return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); }
+        function $id(id){ return document.getElementById(id); }
+
+        // Set up accordion toggles (acc-btn elements control acc-panel with matching id in data-target)
+        $all('.acc-btn').forEach(function(btn){
+          btn.setAttribute('tabindex','0');
+          var target = btn.getAttribute('data-target');
+          var panel = target ? $id(target) : null;
+
+          // click handler
+          btn.addEventListener('click', function(){
+            try {
+              // toggle aria-expanded
+              var expanded = btn.getAttribute('aria-expanded') === 'true';
+              btn.setAttribute('aria-expanded', String(!expanded));
+              if(panel) panel.classList.toggle('open');
+            } catch(e){}
+          });
+
+          // keyboard accessibility
+          btn.addEventListener('keydown', function(e){
+            if(e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              btn.click();
+            }
+          });
+        });
+
+        // Open all / Close all buttons
+        var openAll = $id('open-all');
+        var closeAll = $id('close-all');
+        if(openAll){
+          openAll.addEventListener('click', function(){
+            $all('.acc-btn').forEach(function(b){ b.setAttribute('aria-expanded','true'); });
+            $all('.acc-panel').forEach(function(p){ p.classList.add('open'); });
+            $all('.reveal').forEach(function(r){ r.classList.add('open'); });
+          });
+        }
+        if(closeAll){
+          closeAll.addEventListener('click', function(){
+            $all('.acc-btn').forEach(function(b){ b.setAttribute('aria-expanded','false'); });
+            $all('.acc-panel').forEach(function(p){ p.classList.remove('open'); });
+            $all('.reveal').forEach(function(r){ r.classList.remove('open'); });
+          });
+        }
+
+        // Smooth hash link handling (if used later)
+        window.addEventListener('hashchange', function(){
+          try {
+            var id = location.hash.slice(1);
+            if(!id) return;
+            var el = $id(id);
+            if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+          } catch(e){}
+        });
+
+        // Respect reduced motion: if user prefers, remove transitions
+        try {
+          var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if(prefersReduced){
+            document.documentElement.style.setProperty('--ease','linear');
+            $all('.acc-panel').forEach(function(p){ p.style.transition = 'none'; });
+            $all('.reveal').forEach(function(r){ r.style.transition = 'none'; });
+          }
+        } catch(e){}
+
+        // Make sure SVGs are not focusable by keyboard unexpectedly
+        $all('svg').forEach(function(svg){ try{ svg.setAttribute('focusable','false'); } catch(e){} });
+
+        // Basic warn-free safety - no console logs unless errors
+      } catch (err) {
+        // silent fail-safe
+      }
+    })();
+  </script>
+
+</body>
+</html>

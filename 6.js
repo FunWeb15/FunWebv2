@@ -3,17 +3,117 @@ document.addEventListener("DOMContentLoaded", () => {
   emailjs.init("UjiGSekzpgTWMon5i"); // ✅ Your Public Key
 
   const quizData = [
-    {q:"Which of the following BEST describes motion?",o:["A change in the color of an object","A change in the position of an object over time","An object staying still","A force acting downward"],a:1,e:"Motion is a change in position over time."},
-    {q:"A toy car travels 20 meters in 4 seconds. What is its speed?",o:["2 m/s","4 m/s","5 m/s","8 m/s"],a:2,e:"Speed = Distance ÷ Time → 20 ÷ 4 = 5 m/s"},
-    {q:"When distance increases but time stays the same, what happens to speed?",o:["Speed decreases","Speed increases","Speed does not change","Speed becomes zero"],a:1,e:"More distance in same time means higher speed."},
-    {q:"What is needed to change motion?",o:["Mass","Shape","Force","Temperature"],a:2,e:"A force is required to change motion."},
-    {q:"Equal and opposite forces are called?",o:["Net","Balanced","Unbalanced","Friction"],a:1,e:"Balanced forces cancel each other."},
-    {q:"What happens with unbalanced forces?",o:["Stops","No change","Motion changes","Lighter"],a:2,e:"Unbalanced forces change motion."},
-    {q:"When temperature increases, particles?",o:["Stop","Slow","Move faster","Grow"],a:2,e:"Heat increases particle motion."},
-    {q:"Which has particles closest?",o:["Solid","Liquid","Gas","Plasma"],a:0,e:"Solids have tightly packed particles."},
-    {q:"Why do gases fill containers?",o:["Still","Packed","Move freely","Vibrate"],a:2,e:"Gas particles move freely and far apart."},
-    {q:"Book on table doesn't move because?",o:["No gravity","Balanced forces","Table moves","Small particles"],a:1,e:"Upward table force balances gravity."}
-  ];
+  {
+    q: "Which of the following best describes motion?",
+    o: [
+      "A change in direction only",
+      "A change in speed only",
+      "A change in position relative to a reference point",
+      "Staying in the same place over time"
+    ],
+    a: 2,
+    e: "Motion means an object changes its position relative to a reference point."
+  },
+  {
+    q: "Which situation shows that an object is in motion?",
+    o: [
+      "A parked car beside a tree",
+      "A book sitting on a table",
+      "A student walking past a stationary pole",
+      "A chair in the classroom"
+    ],
+    a: 2,
+    e: "The walking student changes position relative to the pole, showing motion."
+  },
+  {
+    q: "What two quantities are needed to determine speed?",
+    o: [
+      "Mass and time",
+      "Distance and time",
+      "Force and distance",
+      "Distance and direction"
+    ],
+    a: 1,
+    e: "Speed is calculated using distance divided by time."
+  },
+  {
+    q: "A runner travels the same distance every second. This means the runner is moving with…",
+    o: [
+      "Speeding up",
+      "Slowing down",
+      "Constant speed",
+      "Changing direction"
+    ],
+    a: 2,
+    e: "Equal distance per second means constant speed."
+  },
+  {
+    q: "If an object covers a greater distance in less time, what can we say about its speed?",
+    o: [
+      "It decreases",
+      "It increases",
+      "It becomes zero",
+      "It stays the same"
+    ],
+    a: 1,
+    e: "More distance in less time means the speed increases."
+  },
+  {
+    q: "Which graph represents constant speed?",
+    o: [
+      "A horizontal line",
+      "A slanted straight line upward",
+      "A curved line upward",
+      "A zigzag line"
+    ],
+    a: 1,
+    e: "A straight, slanted line shows constant speed because distance increases at a steady rate."
+  },
+  {
+    q: "A car that has a steeper line on a distance-time graph is…",
+    o: [
+      "Slower",
+      "Faster",
+      "Not moving",
+      "Moving backward"
+    ],
+    a: 1,
+    e: "A steeper line means the distance increases faster, so the speed is higher."
+  },
+  {
+    q: "Which of the following situations shows changing speed?",
+    o: [
+      "A jeepney cruising steadily on a highway",
+      "A tricycle stopped at a red light",
+      "A motorcycle slowing down before a turn",
+      "A person sitting in a classroom"
+    ],
+    a: 2,
+    e: "Slowing down or speeding up means the speed is changing."
+  },
+  {
+    q: "A bicycle moves 10 meters every second. What does this tell us?",
+    o: [
+      "Its speed is changing",
+      "It moves with constant speed",
+      "It is not moving",
+      "It moves only for one second"
+    ],
+    a: 1,
+    e: "Covering equal distance per second means constant speed."
+  },
+  {
+    q: "Which statement best explains why a reference point is important?",
+    o: [
+      "It measures force",
+      "It helps determine the direction of gravity",
+      "It shows whether an object has mass",
+      "It helps us know if an object is moving"
+    ],
+    a: 3,
+    e: "Motion can only be observed when compared to a reference point."
+  }
+];
 
   let index = 0;
   let answers = [];
