@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Motion of Objects — Grade 7 IIS</title>
+  <link rel="stylesheet" href="sims.css">
+</head>
+<body>
+  <div class="app" id="app" role="application" aria-label="Motion of objects interactive simulation">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">A↔B</div>
+        <div>
+          <div class="title">Motion of Objects</div>
+          <div class="subtitle">Distance · Speed · Time — Grade 7</div>
+        </div>
+      </div>
+      <div class="kbd-hint" aria-hidden="true">Space = Start/Pause · R = Reset</div>
+    </header>
+
+    <!-- Main stage -->
+    <main class="stage" id="stage" role="main" aria-live="polite">
+      <section class="topbar">
+        <div class="object-legend" aria-hidden="true">
+          <div class="obj-a"><span class="swatch a"></span></div>
+          <div class="obj-b"><span class="swatch b"></span></div>
+        </div>
+        <div class="metrics" role="status" aria-live="polite">
+          <div class="metric" aria-hidden="false">
+            <div class="small">Current Speed (A)</div>
+            <div class="big" id="speedDisplay">0 m/s</div>
+          </div>
+          <div class="metric">
+            <div class="small">Distance Covered (A)</div>
+            <div class="big" id="distanceDisplayA">0 m</div>
+          </div>
+          <div class="metric">
+            <div class="small">Distance Covered (B)</div>
+            <div class="big" id="distanceDisplayB">0 m</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Canvas container -->
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="trackCanvas" class="track" role="img" aria-label="Racetrack canvas"></canvas>
+        <div id="tooltip" class="tooltip" role="status" aria-hidden="true" style="display:none"></div>
+      </div>
+
+      <!-- Formula + Graphs -->
+      <section class="panels">
+        <div class="formula glass" aria-hidden="false">
+          <div class="frac" id="fracBox" aria-hidden="false">
+            <div class="num" id="numLabel">Distance</div>
+            <div class="bar" aria-hidden="true"></div>
+            <div class="den" id="denLabel">Time</div>
+          </div>
+          <div class="eq" aria-hidden="true">=</div>
+          <div class="speed-readout" aria-live="polite">
+            <div class="small">Speed</div>
+            <div class="big" id="computedSpeed">0</div>
+            <div class="small muted" id="computedUnit">m/s</div>
+          </div>
+        </div>
+
+        <div class="graphs">
+          <div class="graph-card glass">
+            <div class="graph-title">Distance vs Time</div>
+            <canvas id="distGraph" class="graph" aria-label="Distance versus time"></canvas>
+          </div>
+          <div class="graph-card glass">
+            <div class="graph-title">Speed vs Time</div>
+            <canvas id="speedGraph" class="graph" aria-label="Speed versus time"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Controls (sidebar) -->
+    <aside class="controls" id="controls" role="complementary">
+      <div class="controls-top">
+        <div class="controls-title">Controls</div>
+        <div class="unit-toggle">
+          <label for="unitToggle">Units</label>
+          <select id="unitToggle" aria-label="Unit toggle">
+            <option value="m_s">m / s</option>
+            <option value="km_h">km / h</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Global controls -->
+      <div class="control-group">
+        <label for="distanceRange">Distance (<span id="distanceUnitLabel">m</span>)</label>
+        <div class="range-row">
+          <input id="distanceRange" type="range" min="10" max="5000" step="10" value="200" aria-label="Distance range">
+          <input id="distanceInput" type="number" min="10" max="5000" step="10" value="200" aria-label="Distance numeric">
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="timeRange">Time (<span id="timeUnitLabel">s</span>)</label>
+        <div class="range-row">
+          <input id="timeRange" type="range" min="1" max="600" step="1" value="10" aria-label="Time range">
+          <input id="timeInput" type="number" min="1" max="600" step="1" value="10" aria-label="Time numeric">
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="frictionRange">Global Friction / Resistance</label>
+        <div class="range-row">
+          <input id="frictionRange" type="range" min="0" max="1" step="0.01" value="0.02" aria-label="Friction range">
+          <input id="frictionInput" type="number" min="0" max="1" step="0.01" value="0.02" aria-label="Friction numeric">
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="turboRange">Turbo Multiplier (playback)</label>
+        <div class="range-row">
+          <input id="turboRange" type="range" min="0.25" max="4" step="0.25" value="1" aria-label="Turbo range">
+          <input id="turboInput" type="number" min="0.25" max="4" step="0.25" value="1" aria-label="Turbo numeric">
+        </div>
+      </div>
+
+      <hr/>
+
+      <!-- Object-specific controls -->
+      <div class="control-group obj-controls" aria-label="Object A controls">
+        <div class="obj-header">
+          <div class="swatch a" aria-hidden="true"></div>
+          <strong>Object A</strong>
+        </div>
+        <label for="massARange">Mass (kg)</label>
+        <div class="range-row">
+          <input id="massARange" type="range" min="0.1" max="10" step="0.1" value="1" aria-label="Mass A range">
+          <input id="massAInput" type="number" min="0.1" max="10" step="0.1" value="1" aria-label="Mass A numeric">
+        </div>
+
+        <label for="speedAMultRange">Speed Multiplier</label>
+        <div class="range-row">
+          <input id="speedAMultRange" type="range" min="0.2" max="2" step="0.01" value="1" aria-label="Speed A multiplier range">
+          <input id="speedAMultInput" type="number" min="0.2" max="2" step="0.01" value="1" aria-label="Speed A multiplier numeric">
+        </div>
+      </div>
+
+      <div class="control-group obj-controls" aria-label="Object B controls">
+        <div class="obj-header">
+          <div class="swatch b" aria-hidden="true"></div>
+          <strong>Object B</strong>
+        </div>
+        <label for="massBRange">Mass (kg)</label>
+        <div class="range-row">
+          <input id="massBRange" type="range" min="0.1" max="10" step="0.1" value="1.2" aria-label="Mass B range">
+          <input id="massBInput" type="number" min="0.1" max="10" step="0.1" value="1.2" aria-label="Mass B numeric">
+        </div>
+
+        <label for="speedBMultRange">Speed Multiplier</label>
+        <div class="range-row">
+          <input id="speedBMultRange" type="range" min="0.2" max="2" step="0.01" value="0.98" aria-label="Speed B multiplier range">
+          <input id="speedBMultInput" type="number" min="0.2" max="2" step="0.01" value="0.98" aria-label="Speed B multiplier numeric">
+        </div>
+      </div>
+
+      <hr/>
+
+      <div class="control-actions" role="group" aria-label="Simulation controls">
+        <button id="startBtn" class="btn primary" aria-label="Start simulation">Start</button>
+        <button id="pauseBtn" class="btn" aria-label="Pause simulation">Pause</button>
+        <button id="resetBtn" class="btn" aria-label="Reset simulation">Reset</button>
+      </div>
+
+      <div class="teacher-mode">
+        <label><input type="checkbox" id="teacherToggle" aria-label="Toggle teacher mode"> Show Teacher Prompts</label>
+        <div id="teacherPanel" class="teacher-panel" hidden>
+          <strong>Engage:</strong> "Which object will reach the end first?"<br/>
+          <strong>Elicit:</strong> "Predict using the sliders."<br/>
+          <strong>Explore:</strong> "Change mass, speed multiplier, friction and watch the graphs."<br/>
+          <strong>Explain:</strong> "Speed = Distance ÷ Time — discuss." <br/>
+          <strong>Elaborate:</strong> "Compare effects of mass and friction on motion."
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Script -->
+  <script src="sims.js"></script>
+</body>
+</html>

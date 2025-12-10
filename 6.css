@@ -1,0 +1,405 @@
+/* =========================================================
+   GRADE 7 MOTION & SPEED QUIZ — ULTRA UI EDITION
+   Designer-Level CSS | Glassmorphism | Animations | Glow
+   ========================================================= */
+
+/* ========================== ROOT VARIABLES ========================== */
+:root {
+  --bg-0: #060b1f;
+  --bg-1: #0b122a;
+  --card: rgba(255, 255, 255, 0.045);
+  --glass: rgba(255, 255, 255, 0.07);
+  --muted: #94a3b8;
+  --accent: #60a5fa;
+  --accent-2: #7c3aed;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #fbbf24;
+  --radius: 18px;
+  --text: #e6eef8;
+
+  /* Shadows */
+  --shadow-main: 0 20px 60px rgba(0,0,0,.6);
+  --shadow-soft: 0 10px 30px rgba(0,0,0,.4);
+  --shadow-glow: 0 0 30px rgba(96,165,250,.3);
+
+  /* Progress */
+  --progress-bg: rgba(255,255,255,.08);
+  --progress-fill: linear-gradient(90deg, var(--accent), var(--accent-2));
+
+  /* Fonts */
+  --font-sans: "Inter", system-ui;
+  --font-display: "Nunito", var(--font-sans);
+
+  /* Animations */
+  --fast: 0.15s;
+  --normal: 0.35s;
+  --slow: 0.6s;
+
+  /* Accessibility */
+  --focus-ring: 3px;
+  --focus-color: rgba(96,165,250,0.18);
+  --focus-outline: 4px solid rgba(96,165,250,0.12);
+}
+
+/* ========================== RESET & BASE ========================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(900px 500px at 10% 10%, rgba(124, 58, 237, 0.15), transparent),
+    radial-gradient(700px 400px at 90% 90%, rgba(96, 165, 250, 0.08), transparent),
+    linear-gradient(180deg, var(--bg-0), var(--bg-1));
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove native focus styles but preserve accessibility via :focus-visible */
+button, input, select, textarea {
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+}
+
+/* ========================== MAIN CONTAINER ========================== */
+.app {
+  width: 100%;
+  max-width: 1100px;
+  min-height: 680px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border-radius: 22px;
+  box-shadow: var(--shadow-main);
+  border: 1px solid rgba(255,255,255,.06);
+  padding: 28px;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ========================== LEFT PANEL ========================== */
+.left {
+  padding: 24px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow-glow);
+  color: white;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.brand h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+
+.brand p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.meta ul {
+  padding-left: 22px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.hint {
+  font-size: 13px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+/* ========================== START BUTTON ========================== */
+.start-btn {
+  margin-top: auto;
+  padding: 15px;
+  border-radius: 14px;
+  border: none;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: .5px;
+  color: white;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow-glow);
+  transition: transform var(--normal), box-shadow var(--normal), box-shadow .15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.start-btn:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 0 40px rgba(96,165,250,.4);
+}
+.start-btn:active {
+  transform: scale(.98);
+}
+
+/* focus-visible for start button */
+.start-btn:focus-visible {
+  box-shadow: 0 0 0 var(--focus-ring) var(--focus-color), var(--shadow-glow);
+  border-radius: 14px;
+}
+
+/* ========================== RIGHT PANEL ========================== */
+.right {
+  padding: 20px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ========================== PROGRESS BAR ========================== */
+.progress {
+  height: 14px;
+  background: var(--progress-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: inset 0 4px 12px rgba(0,0,0,.6);
+  margin-top: 6px;
+}
+
+.fill {
+  height: 100%;
+  width: 0%;
+  background: var(--progress-fill);
+  box-shadow: 0 0 18px rgba(124,58,237,.65);
+  transition: width var(--slow);
+}
+
+/* visual focus for progress wrapper for keyboard users */
+.progress:focus-visible, .progress-wrap:focus-within {
+  outline: var(--focus-outline);
+  border-radius: 12px;
+}
+
+/* ========================== QUIZ CARD ========================== */
+.card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 360px;
+  border: 1px solid rgba(255,255,255,.06);
+  box-shadow: var(--shadow-soft);
+  animation: fadeIn var(--slow) ease;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(8px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+/* ========================== OPTIONS ========================== */
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* make option buttons slightly larger hit area for keyboard users */
+.opt-btn {
+  padding: 14px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 6px 18px rgba(0,0,0,.4);
+  color: var(--text);
+  transition: all var(--fast), transform var(--fast);
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.3;
+}
+
+.opt-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Focus-visible: visible ring for keyboard users */
+.opt-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring) var(--focus-color), var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+/* Correct/incorrect styles preserved */
+.opt-btn.correct {
+  background: linear-gradient(180deg, rgba(16,185,129,.35), rgba(16,185,129,.15));
+  box-shadow: 0 0 25px rgba(16,185,129,.6);
+}
+
+.opt-btn.incorrect {
+  background: linear-gradient(180deg, rgba(239,68,68,.35), rgba(239,68,68,.15));
+  box-shadow: 0 0 25px rgba(239,68,68,.6);
+}
+
+/* reduce opacity for disabled options to indicate locked state */
+.opt-btn[disabled] {
+  opacity: 0.78;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ========================== FEEDBACK ========================== */
+.feedback {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.05);
+  font-size: 14px;
+  min-height: 40px; /* prevents layout jump when feedback appears */
+}
+
+/* ========================== CONTROLS ========================== */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.btn {
+  padding: 12px 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.03);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform var(--fast), box-shadow var(--fast);
+}
+
+.btn.primary {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+/* visible keyboard focus for buttons */
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring) var(--focus-color), var(--shadow-glow);
+}
+
+/* hover micro-interaction */
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+/* disabled state clarity */
+.btn[disabled], button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ========================== RESULTS ========================== */
+.results-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.results-table td,
+.results-table th {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+/* ========================== CONFETTI ========================== */
+.confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ========================== REDUCED MOTION ========================== */
+@media (prefers-reduced-motion: reduce) {
+  .fill { transition: none; }
+  .opt-btn, .btn, .start-btn { transition: none; transform: none; }
+  .card { animation: none; }
+}
+
+/* ========================== RESPONSIVE ========================== */
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+  .options {
+    grid-template-columns: 1fr;
+  }
+}
+input {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(255,255,255,.05);
+  color: white;
+  font-size: 15px;
+  outline: none;
+}
+
+input::placeholder {
+  color: #94a3b8;
+}

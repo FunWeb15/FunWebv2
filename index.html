@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FunWeb</title>
+  <meta name="description" content="FunWeb — Interactive Instructional System (IIS) main hub for Grade 7 Physics: Simulations, Study Guide, Solving Section, Concept Web, About Us, Assessments." />
+  <style>
+    /* =========================
+       Variables & Base Styles
+       ========================= */
+    :root{
+      --bg-1: #05060a;          /* deep background */
+      --bg-2: #0a0f1a;          /* gradient */
+      --neon-cyan: #0ff3ff;
+      --neon-magenta: #ff3ec6;
+      --glow-strong: 0 0 18px rgba(0,255,255,0.12), 0 0 36px rgba(255,62,198,0.06);
+      --card-bg: rgba(255,255,255,0.03);
+      --muted: rgba(255,255,255,0.6);
+      --accent: linear-gradient(135deg,var(--neon-cyan),var(--neon-magenta));
+      --radius: 14px;
+      --ease: cubic-bezier(.16,.84,.25,1);
+      --max-width: 1100px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+                   Roboto, "Helvetica Neue", Arial;
+      background:
+        radial-gradient(1200px 600px at 10% 10%, rgba(15,30,60,0.18), transparent 8%),
+        radial-gradient(1000px 500px at 90% 90%, rgba(80,10,50,0.06), transparent 8%),
+        linear-gradient(180deg,var(--bg-1),var(--bg-2));
+      color:#e9f6ff;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow-y:auto;
+    }
+
+    /* Skip link for accessibility */
+    .skip-link{
+      position:absolute;
+      left:-999px;
+      top:auto;
+      width:1px;
+      height:1px;
+      overflow:hidden;
+    }
+    .skip-link:focus{
+      left:1rem;
+      top:1rem;
+      width:auto;
+      height:auto;
+      padding:.5rem .75rem;
+      background:#001a26;
+      color:var(--neon-cyan);
+      border-radius:8px;
+      z-index:1000;
+    }
+
+    /* Page layout */
+    .page{
+      min-height:100vh;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:28px 20px;
+    }
+    .container{
+      width:100%;
+      max-width:var(--max-width);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:28px;
+      position:relative;
+    }
+
+    /* Particle canvas full-bleed */
+    #bg-canvas{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      opacity:.65;
+      mix-blend-mode:screen;
+    }
+
+    /* Header */
+    header{
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:12px;
+      z-index:2;
+      text-align:center;
+      padding-top:12px;
+    }
+    h1{
+      margin:0;
+      font-weight:700;
+      letter-spacing:0.6px;
+      font-size:clamp(1.25rem,2.5vw,1.9rem);
+      text-shadow: 0 2px 18px rgba(0,0,0,0.5);
+      color: #eafcff;
+      opacity:0;
+      transform:translateY(-8px) scale(.995);
+      transition:opacity .6s var(--ease), transform .6s var(--ease);
+    }
+    .subtitle{
+      margin:0;
+      font-size:.95rem;
+      color:var(--muted);
+      max-width:820px;
+      opacity:0;
+      transform:translateY(-6px);
+      transition:opacity .6s var(--ease) .06s, transform .6s var(--ease) .06s;
+    }
+
+    /* Logo placeholder (150x150) */
+    .logo-wrap{
+      width:150px;
+      height:150px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:12px;
+      background:linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+      position:relative;
+      z-index:2;
+      opacity:0;
+      transform: translateY(-8px) scale(.98);
+      transition:opacity .6s var(--ease) .12s, transform .6s var(--ease) .12s;
+    }
+
+    /* SVG logo styling */
+    .funweb-logo{
+      width:86%;
+      height:86%;
+      display:block;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.6));
+    }
+
+    /* Logo animated glow/pulse */
+    .logo-glow{
+      position:absolute;
+      inset:0;
+      border-radius:12px;
+      pointer-events:none;
+      background: radial-gradient(circle at 25% 20%, rgba(15,255,255,0.06), transparent 6%),
+                  radial-gradient(circle at 80% 80%, rgba(255,62,198,0.06), transparent 8%);
+      mix-blend-mode:screen;
+      transition:transform .6s var(--ease), opacity .6s var(--ease);
+      z-index:1;
+    }
+
+    /* Buttons grid */
+    .grid{
+      width:100%;
+      display:grid;
+      gap:18px;
+      z-index:2;
+      grid-template-columns: repeat(3, 1fr);
+      align-items:start;
+      justify-items:center;
+    }
+
+    /* Individual card / nav tile */
+    .tile{
+      width:100%;
+      max-width:320px;
+      min-height:120px;
+      background:var(--card-bg);
+      border-radius:var(--radius);
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:flex-start;
+      box-shadow: var(--glow-strong);
+      border:1px solid rgba(255,255,255,0.04);
+      transform:translateY(8px);
+      opacity:0;
+      transition:transform .6s var(--ease), opacity .6s var(--ease);
+      position:relative;
+      overflow:visible;
+    }
+
+    .tile a{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      text-decoration:none;
+      width:100%;
+      color:inherit;
+    }
+
+    /* Big neon button look (rectangular) */
+    .btn-neon{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px 16px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.06);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      font-weight:700;
+      letter-spacing:0.4px;
+      font-size:1.03rem;
+      width:100%;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      transition: transform .18s var(--ease), box-shadow .18s var(--ease), filter .18s var(--ease);
+      cursor:pointer;
+      position:relative;
+      outline:none;
+    }
+
+    /* Decorative neon border lines */
+    .btn-neon::before,
+    .btn-neon::after{
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:8px;
+      z-index:-1;
+      pointer-events:none;
+    }
+    .btn-neon::before{
+      background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      filter:blur(12px);
+      opacity:0.9;
+    }
+    .btn-neon .label{
+      position:relative;
+      z-index:2;
+      display:inline-block;
+      background:linear-gradient(90deg,var(--neon-cyan),var(--neon-magenta));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      text-shadow: 0 2px 18px rgba(0,0,0,0.6);
+    }
+
+    /* Hover & focus glow */
+    .btn-neon:hover,
+    .btn-neon:focus{
+      transform:translateY(-6px) scale(1.02);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 24px rgba(15,255,255,0.06);
+    }
+    .btn-neon:active{
+      transform:translateY(-2px) scale(.995);
+    }
+    .btn-neon:focus{
+      outline:3px solid rgba(15,255,255,0.08);
+      outline-offset:4px;
+    }
+
+    /* Neon accent band */
+    .accent-band{
+      height:6px;
+      width:100%;
+      margin-top:6px;
+      border-radius:6px;
+      background: linear-gradient(90deg, rgba(15,255,255,0.9), rgba(255,62,198,0.9));
+      filter:blur(8px);
+      opacity:0.9;
+    }
+
+    /* Short description below each button */
+    .desc{
+      margin:0;
+      font-size:.9rem;
+      color:var(--muted);
+      line-height:1.25;
+      max-width:100%;
+      margin-top:6px;
+    }
+
+    /* Focus-visible for keyboard users (more obvious) */
+    .tile:focus-within{
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 28px rgba(15,255,255,0.08);
+      border-color: rgba(15,255,255,0.12);
+    }
+
+    /* Footer */
+    footer{
+      width:100%;
+      text-align:center;
+      color:var(--muted);
+      font-size:.85rem;
+      padding:14px 8px 40px 8px;
+      z-index:2;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width:1000px){
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+      .container{ gap:20px; }
+      .tile{ max-width:420px; }
+    }
+    @media (max-width:640px){
+      .grid{ grid-template-columns: 1fr; }
+      .logo-wrap{ width:120px; height:120px; }
+      header{ gap:8px; }
+      .subtitle{ font-size:.92rem; padding:0 6px; }
+      .tile{ padding:14px; min-height:110px; }
+    }
+
+    /* Entrance animation when .loaded is added to body */
+    body.loaded h1,
+    body.loaded .subtitle,
+    body.loaded .logo-wrap{
+      opacity:1;
+      transform:translateY(0) scale(1);
+    }
+
+    /* staggered tiles entrance */
+    .tile[data-order="1"]{ transition-delay:.18s; }
+    .tile[data-order="2"]{ transition-delay:.26s; }
+    .tile[data-order="3"]{ transition-delay:.34s; }
+    .tile[data-order="4"]{ transition-delay:.42s; }
+    .tile[data-order="5"]{ transition-delay:.5s; }
+    .tile[data-order="6"]{ transition-delay:.58s; }
+
+    body.loaded .tile{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    /* Reduced motion preference */
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none !important; animation:none !important; scroll-behavior:auto !important; }
+      #bg-canvas{ display:none; }
+    }
+
+    /* Tooltip-like style for screen readers / visible descriptions */
+    .visually-hidden{
+      position:absolute !important;
+      height:1px; width:1px;
+      overflow:hidden;
+      clip:rect(1px,1px,1px,1px);
+      white-space:nowrap;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Skip link -->
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Background canvas for subtle particles (disabled for reduced motion) -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <div class="page" role="application" aria-label="FunWeb main hub">
+    <div class="container" id="main">
+      <header>
+        <!-- Logo (150x150 placeholder with animation) -->
+        <!-- The SVG below is the square 150x150 animated placeholder for "FunWeb".
+             Replace the inner text/logo with an actual image file if desired. -->
+        <div class="logo-wrap" id="logo" aria-hidden="false" aria-label="FunWeb logo">
+          <!-- decorative glow layer -->
+          <div class="logo-glow" id="logo-glow" aria-hidden="true"></div>
+
+          <!-- Accessible label for logo for screen readers -->
+          <span class="visually-hidden">FunWeb — Grade 7 Physics</span>
+
+          <!-- SVG mark — simple geometric emblem that pulses/gradients -->
+          <svg class="funweb-logo" viewBox="0 0 100 100" role="img" aria-labelledby="logoTitle logoDesc" preserveAspectRatio="xMidYMid meet">
+            <title id="logoTitle">FunWeb logo</title>
+            <desc id="logoDesc">Square animated emblem with F and W shapes and neon gradient</desc>
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#0ff3ff"/>
+                <stop offset="1" stop-color="#ff3ec6"/>
+              </linearGradient>
+              <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2.2" result="b" />
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            <!-- background square -->
+            <rect x="5" y="5" width="90" height="90" rx="12" fill="url(#g1)" fill-opacity="0.12" stroke="rgba(255,255,255,0.06)" stroke-width="1.2"></rect>
+
+            <!-- stylized F and W shapes -->
+            <g transform="translate(8,8)" filter="url(#softGlow)">
+              <path d="M10 10 h22 v8 h-14 v10 h12" stroke="url(#g1)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+              <path d="M60 10 l-10 30 l-10 -30 l-10 30" stroke="url(#g1)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(-6,0)"/>
+            </g>
+
+            <!-- animated circle particles (pure SVG animation) -->
+            <circle cx="82" cy="18" r="1.6" fill="#0ff3ff" opacity="0.9">
+              <animate attributeName="r" values="1.6;3;1.6" dur="2.6s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.9;0.3;0.9" dur="2.6s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="18" cy="82" r="1.6" fill="#ff3ec6" opacity="0.9">
+              <animate attributeName="r" values="1.6;2.8;1.6" dur="3.2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.9;0.25;0.9" dur="3.2s" repeatCount="indefinite" />
+            </circle>
+          </svg>
+        </div>
+
+        <h1>FunWeb </h1>
+        <p class="subtitle">An Interactive Instructional System hub: simulations, guides, practice, concept maps, assessments, and teacher resources  designed for classroom-ready learning.</p>
+      </header>
+
+      <!-- Navigation grid: 6 tiles -->
+      <main style="width:100%; z-index:2;" aria-labelledby="main-heading">
+        <h2 id="main-heading" class="visually-hidden">Main navigation</h2>
+
+        <section class="grid" role="navigation" aria-label="Primary site navigation">
+          <!-- 1. Simulations -->
+          <article class="tile" data-order="1">
+            <!-- Update href="#" to actual simulations page URL (e.g., /simulations/index.html) -->
+            <a class="btn-neon" href="#" role="link" aria-label="Simulations — Interactive simulations to visualize physics concepts" tabindex="0">
+              <span class="label">Simulations</span>
+            </a>
+            <div class="accent-band" aria-hidden="true"></div>
+            <p class="desc">Interactive simulations to visualize physics concepts (motion, forces, energy). Use in-class or homework demos.</p>
+          </article>
+
+          <!-- 2. Study Guide -->
+          <article class="tile" data-order="2">
+            <!-- Update href="#" to actual study guide page URL (e.g., /study-guide/index.html) -->
+            <a class="btn-neon" href="#" role="link" aria-label="Study Guide — Detailed lesson material and reference" tabindex="0">
+              <span class="label">Study Guide</span>
+            </a>
+            <div class="accent-band" aria-hidden="true"></div>
+            <p class="desc">Detailed lesson material and reference notes for teachers and students with diagrams and examples.</p>
+          </article>
+
+          <!-- 3. Solving Section -->
+          <article class="tile" data-order="3">
+            <!-- Update href="#" to actual solving section page URL (e.g., /solving/index.html) -->
+            <a class="btn-neon" href="#" role="link" aria-label="Solving Section — Guided practice problems and worked examples" tabindex="0">
+              <span class="label">Solving Section</span>
+            </a>
+            <div class="accent-band" aria-hidden="true"></div>
+            <p class="desc">Guided practice exercises and problem-solving steps to build numerical and conceptual skills.</p>
+          </article>
+
+          <!-- 4. Concept Web -->
+          <article class="tile" data-order="4">
+            <!-- Update href="#" to actual concept web page URL (e.g., /concept-web/index.html) -->
+            <a class="btn-neon" href="#" role="link" aria-label="Concept Web — Visual concept map linking physics ideas" tabindex="0">
+              <span class="label">Concept Web</span>
+            </a>
+            <div class="accent-band" aria-hidden="true"></div>
+            <p class="desc">A visually engaging concept map that links physics concepts, showing dependencies and examples.</p>
+          </article>
+
+          <!-- 5. About Us -->
+          <article class="tile" data-order="5">
+            <!-- Update href="#" to actual about page URL (e.g., /about/index.html) -->
+            <a class="btn-neon" href="#" role="link" aria-label="About Us — Teacher and website information" tabindex="0">
+              <span class="label">About Us</span>
+            </a>
+            <div class="accent-band" aria-hidden="true"></div>
+            <p class="desc">Information for teachers and contributors, contact details, and how to use the FunWeb IIS in class.</p>
+          </article>
+
+          <!-- 6. Assessments -->
+          <article class="tile" data-order="6">
+            <!-- Update href="#" to actual assessments page URL (e.g., /assessments/index.html) -->
+            <a class="btn-neon" href="#" role="link" aria-label="Assessments — Pre-tests, post-tests, and quizzes" tabindex="0">
+              <span class="label">Assessments</span>
+            </a>
+            <div class="accent-band" aria-hidden="true"></div>
+            <p class="desc">Pre-tests, post-tests, and short quizzes to measure student learning and progress.</p>
+          </article>
+
+        </section>
+      </main>
+
+      <footer aria-hidden="false">
+        <div>© <span id="year"></span> FunWeb — Classroom-ready Grade 7 Physics. Links are placeholders; update the <code>href</code> attributes in this file to point to real pages.</div>
+        <div style="margin-top:6px;color:var(--muted);font-size:.82rem">Tip: Use Tab / Shift+Tab to navigate — buttons show a neon focus ring for keyboard users.</div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    /* =========================
+       Minimal JS for interactivity:
+       - Add 'loaded' class for entrance animation
+       - Setup accessible keyboard behavior for anchor tiles (Enter/Space)
+       - Simple particle background in canvas
+       - Logo subtle pulse and color-shift via CSS variables / transforms
+       - Reduced-motion respect
+       ========================= */
+
+    (function(){
+      // Respect reduced motion
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Add loaded class after DOMContentLoaded to trigger entrance animations
+      document.addEventListener('DOMContentLoaded', () => {
+        if (!prefersReduced){
+          // small timeout for nicer stagger
+          requestAnimationFrame(() => document.body.classList.add('loaded'));
+        } else {
+          document.body.classList.add('loaded'); // no motion but show content
+        }
+
+        // Insert current year in footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+      });
+
+      // Accessible keyboard behavior: anchors already respond to Enter; add Space handling for consistency
+      const navAnchors = document.querySelectorAll('.btn-neon');
+      navAnchors.forEach(a => {
+        a.addEventListener('keydown', (e) => {
+          if (e.code === 'Space' || e.key === ' '){
+            e.preventDefault();
+            a.click();
+          }
+        });
+
+        // Click animation ripple-like
+        a.addEventListener('click', (e) => {
+          // Slight click feedback animation (scale handled in CSS); provide quick aria live for screen readers
+          const ariaMsg = document.getElementById('aria-click-msg');
+          if (ariaMsg){
+            ariaMsg.textContent = `${a.textContent.trim()} selected. Link placeholder. Update href in index.html.`;
+            setTimeout(()=> ariaMsg.textContent = '', 900);
+          }
+          // Smooth small pulse: add class then remove
+          a.style.transition = 'transform .12s ease';
+          a.style.transform = 'scale(.995)';
+          setTimeout(()=> a.style.transform = '', 140);
+        });
+      });
+
+      // Invisible live region for click feedback for screen reader users
+      const live = document.createElement('div');
+      live.id = 'aria-click-msg';
+      live.setAttribute('aria-live','polite');
+      live.className = 'visually-hidden';
+      document.body.appendChild(live);
+
+      /* Logo subtle animation: we will rotate the gradient glow and pulse the logo */
+      (function logoAnimation(){
+        const logoGlow = document.getElementById('logo-glow');
+        const logoWrap = document.getElementById('logo');
+        if (!logoGlow || !logoWrap || prefersReduced) return;
+
+        let t = 0;
+        function step(){
+          t += 0.005;
+          const sx = 1 + Math.sin(t*2.2)*0.01;
+          const sy = 1 + Math.cos(t*1.7)*0.01;
+          logoWrap.style.transform = `translateY(0) scale(${sx})`;
+          // subtle rotation of the glow background via transform
+          logoGlow.style.transform = `rotate(${t*15}deg) scale(${sy})`;
+          requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      })();
+
+      /* Simple particle background */
+      (function particles(){
+        const canvas = document.getElementById('bg-canvas');
+        if (!canvas || prefersReduced) return;
+
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = innerWidth;
+        let height = canvas.height = innerHeight;
+        const DPR = Math.max(1, window.devicePixelRatio || 1);
+        canvas.width = Math.floor(width * DPR);
+        canvas.height = Math.floor(height * DPR);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.scale(DPR, DPR);
+
+        const config = {
+          count: Math.floor((width * height) / 80000), // density
+          speed: 0.2,
+          sizeMin: 0.6,
+          sizeMax: 1.8,
+          connectDist: 140
+        };
+
+        let particles = [];
+
+        function rand(min, max){ return Math.random()*(max-min)+min; }
+
+        function init(){
+          particles = [];
+          for (let i=0;i<config.count;i++){
+            particles.push({
+              x: Math.random()*width,
+              y: Math.random()*height,
+              vx: (Math.random()-0.5)*config.speed,
+              vy: (Math.random()-0.5)*config.speed,
+              r: rand(config.sizeMin, config.sizeMax),
+              hue: Math.random()
+            });
+          }
+        }
+
+        function resize(){
+          width = canvas.width = innerWidth;
+          height = canvas.height = innerHeight;
+          canvas.width = Math.floor(width * DPR);
+          canvas.height = Math.floor(height * DPR);
+          canvas.style.width = width + 'px';
+          canvas.style.height = height + 'px';
+          ctx.setTransform(DPR,0,0,DPR,0,0);
+          init();
+        }
+
+        window.addEventListener('resize', () => {
+          // debounce quick resizes
+          clearTimeout(window._bgResizeTimer);
+          window._bgResizeTimer = setTimeout(resize, 150);
+        });
+
+        function draw(){
+          ctx.clearRect(0,0,width,height);
+          // draw particles
+          for (let i=0;i<particles.length;i++){
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < -10) p.x = width + 10;
+            if (p.x > width + 10) p.x = -10;
+            if (p.y < -10) p.y = height + 10;
+            if (p.y > height + 10) p.y = -10;
+
+            const alpha = 0.65 * (0.6 + 0.4*Math.sin((p.x+p.y)/100));
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(180,240,255,${alpha*0.12})`;
+            ctx.arc(p.x, p.y, p.r*1.1, 0, Math.PI*2);
+            ctx.fill();
+          }
+
+          // optional faint links between close particles
+          for (let i=0;i<particles.length;i++){
+            for (let j=i+1;j<particles.length;j++){
+              const a = particles[i], b = particles[j];
+              const dx = a.x - b.x, dy = a.y - b.y;
+              const d = Math.sqrt(dx*dx + dy*dy);
+              if (d < config.connectDist){
+                const alpha = 0.04 * (1 - d / config.connectDist);
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(175,220,255,${alpha})`;
+                ctx.lineWidth = 1;
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+              }
+            }
+          }
+          requestAnimationFrame(draw);
+        }
+
+        init();
+        requestAnimationFrame(draw);
+      })();
+
+      // Ensure focus styles for keyboard navigation: show on keyboard interaction, hide on mouse
+      (function focusMode(){
+        function handleFirstTab(e){
+          if (e.key === 'Tab'){
+            document.documentElement.classList.add('user-is-tabbing');
+            window.removeEventListener('keydown', handleFirstTab);
+            window.addEventListener('mousedown', handleMouseDownOnce);
+          }
+        }
+        function handleMouseDownOnce(){
+          document.documentElement.classList.remove('user-is-tabbing');
+          window.removeEventListener('mousedown', handleMouseDownOnce);
+          window.addEventListener('keydown', handleFirstTab);
+        }
+        window.addEventListener('keydown', handleFirstTab);
+      })();
+
+    })();
+  </script>
+</body>
+</html>

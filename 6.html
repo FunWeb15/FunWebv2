@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Grade 7 — Motion & Speed Quiz</title>
+
+  <!-- STYLES -->
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- ✅ STUDENT INFO (NO START BUTTON HERE ANYMORE) -->
+  <div id="studentForm" class="card">
+    <h2>Student Information</h2>
+    <input id="studentName" type="text" placeholder="Enter your full name" required>
+    <input id="studentSection" type="text" placeholder="Enter your section" required>
+  </div>
+
+  <!-- ✅ MAIN QUIZ APP -->
+  <div class="app">
+
+    <!-- LEFT PANEL -->
+    <aside class="left">
+      <div class="brand">
+        <div class="logo">G7</div>
+        <div>
+          <h1>Motion & Speed Quiz</h1>
+          <p>K–12 DepEd PH — Physics</p>
+        </div>
+      </div>
+
+      <div class="meta">
+        <p><b>Learning Objectives:</b></p>
+        <ul>
+          <li>Understand motion and speed</li>
+          <li>Apply formulas correctly</li>
+          <li>Solve real-life problems involving motion</li>
+        </ul>
+      </div>
+
+      <div class="hint">
+        <b>Instructions:</b> Answer all 10 questions. Feedback is shown after each answer.
+      </div>
+
+      <!-- ✅ THIS IS NOW THE ONLY START BUTTON -->
+      <button id="startBtn" class="start-btn">Start Quiz</button>
+    </aside>
+
+    <!-- RIGHT PANEL -->
+    <main class="right">
+
+      <div class="topbar">
+        <div>
+          <div class="small muted">Student Progress</div>
+          <b>Motion & Speed Quiz</b>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="prog-label" id="progLabel">Question 0 of 10</div>
+          <div class="progress">
+            <div id="progressFill" class="fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUIZ CARD -->
+      <section class="card" id="quizCard">
+        <h2 id="questionTitle">Welcome!</h2>
+        <p id="questionBody">Press Start to begin the quiz.</p>
+
+        <div id="optionsContainer" class="options"></div>
+
+        <p id="feedback" class="feedback"></p>
+
+        <div class="controls">
+          <button id="prevBtn" class="btn" disabled>Previous</button>
+          <button id="nextBtn" class="btn primary" disabled>Next</button>
+        </div>
+      </section>
+
+      <!-- RESULTS CARD -->
+      <section class="card results" id="resultsCard">
+        <div class="summary">
+          <div>
+            <h2>Quiz Results</h2>
+            <p class="small muted">Review your answers below</p>
+          </div>
+          <div class="score-bubble" id="scoreBubble">
+            <h2 id="scoreNumber">0 / 10</h2>
+            <p id="scorePercent">0%</p>
+          </div>
+        </div>
+
+        <div class="results-scroll">
+          <table id="resultsTable" class="results-table"></table>
+        </div>
+      </section>
+
+    </main>
+
+    <div id="confetti" class="confetti"></div>
+
+  </div>
+
+  <!-- ✅ EMAILJS LIBRARY -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <!-- ✅ EMAILJS KEY INIT -->
+  <script>
+    emailjs.init("UjiGSekzpgTWMon5i");
+  </script>
+
+  <!-- ✅ MAIN SCRIPT -->
+  <script src="app.js"></script>
+
+</body>
+</html>

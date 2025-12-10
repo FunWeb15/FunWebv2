@@ -1,0 +1,493 @@
+/* =========================
+   FUTURISTIC COLOR SYSTEM
+========================= */
+:root{
+  --bg-main:#020611;
+  --bg-deep:#00030a;
+
+  --glass:rgba(255,255,255,0.07);
+  --glass-strong:rgba(255,255,255,0.12);
+  --glass-border:rgba(255,255,255,0.22);
+
+  --text:#e9faff;
+
+  --objA:#ff3cac;      /* neon magenta */
+  --objB:#10f0ff;      /* neon cyan */
+
+  --zone-normal:#1ccfff;
+  --zone-boost:#00ff85;
+  --zone-slow:#ff8c00;
+
+  --glow-strong:0 0 30px;
+  --glow-soft:0 0 14px;
+}
+
+/* =========================
+   RESET
+========================= */
+*{box-sizing:border-box;}
+
+html,body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+}
+
+body{
+  font-family:system-ui,Segoe UI,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 15% 20%,#0b2a45 0%,transparent 45%),
+    radial-gradient(circle at 85% 80%,#031e3a 0%,transparent 45%),
+    linear-gradient(180deg,var(--bg-main),var(--bg-deep));
+  color:var(--text);
+  overflow:hidden;
+}
+
+/* =========================
+   ANIMATED AURORA BACKDROP
+========================= */
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(120deg,
+      transparent 20%,
+      rgba(0,255,200,.06) 40%,
+      rgba(120,0,255,.06) 60%,
+      transparent 80%);
+  animation:aurora 18s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes aurora{
+  from{transform:translateX(-40%);}
+  to{transform:translateX(40%);}
+}
+
+/* =========================
+   STANDARD APPEARANCE
+========================= */
+input,
+input[type=range],
+input[type=number],
+select,
+button{
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  background:#000;
+  color:var(--text);
+  border-radius:12px;
+  padding:8px;
+  border:1px solid var(--glass-border);
+  font-family:inherit;
+  outline:none;
+}
+
+/* =========================
+   MASTER GRID
+========================= */
+.app{
+  display:grid;
+  grid-template-columns:1fr 380px;
+  grid-template-rows:auto 1fr;
+  height:100%;
+  gap:16px;
+  padding:16px;
+}
+
+/* =========================
+   HEADER (HUD BAR)
+========================= */
+.header{
+  grid-column:1 / 3;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 22px;
+  background:
+    linear-gradient(135deg,#08142e,#020714);
+  border-radius:24px;
+  border:1px solid var(--glass-border);
+  box-shadow:
+    0 0 40px rgba(0,255,255,.18),
+    inset 0 0 40px rgba(0,255,255,.08);
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.logo{
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--objA),var(--objB));
+  color:black;
+  font-weight:900;
+  box-shadow:0 0 40px var(--objB);
+}
+
+.title{font-size:22px;font-weight:900;letter-spacing:.6px;}
+.subtitle{font-size:12px;opacity:.8;}
+.kbd-hint{font-size:12px;opacity:.7}
+
+/* =========================
+   MAIN STAGE - FIXED CANVAS AREA
+========================= */
+.stage{
+  background:
+    linear-gradient(180deg,#07152e,#020714);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  box-shadow:
+    inset 0 0 60px rgba(0,255,255,.1),
+    0 0 40px rgba(0,255,255,.15);
+}
+
+/* =========================
+   TOP BAR
+========================= */
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.object-legend{
+  display:flex;
+  gap:22px;
+  font-weight:800;
+}
+
+.swatch{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  margin-right:8px;
+  box-shadow:0 0 12px;
+}
+
+.swatch.a{background:var(--objA); box-shadow:0 0 14px var(--objA);}
+.swatch.b{background:var(--objB); box-shadow:0 0 14px var(--objB);}
+
+/* =========================
+   LIVE METRICS
+========================= */
+.metrics{
+  display:flex;
+  gap:12px;
+}
+
+.metric{
+  background:
+    linear-gradient(180deg,#000e,#000);
+  padding:12px 16px;
+  border-radius:16px;
+  border:1px solid var(--glass-border);
+  min-width:130px;
+  box-shadow:
+    inset 0 0 18px rgba(0,255,255,.25);
+}
+
+.metric .big{
+  font-size:18px;
+  font-weight:900;
+  color:var(--zone-boost);
+  text-shadow:0 0 14px var(--zone-boost);
+}
+
+/* =========================
+   CANVAS FRAME (FIXED)
+========================= */
+.canvas-wrap{
+  flex:1;
+  position:relative;
+  background:
+    radial-gradient(circle at center,#06152e,#000);
+  border-radius:22px;
+  overflow:hidden;
+  border:1px solid var(--glass-border);
+  box-shadow:
+    inset 0 0 80px rgba(0,255,255,.25),
+    0 0 40px rgba(0,255,255,.2);
+}
+
+/* =========================
+   FORMULA & GRAPHS SECTION
+========================= */
+.panels{
+  display:grid;
+  grid-template-columns:1fr 1.6fr;
+  gap:14px;
+}
+
+.glass{
+  background:
+    linear-gradient(180deg,#0b1a3a,#050b18);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  padding:14px;
+  box-shadow:
+    0 0 30px rgba(0,255,255,.2),
+    inset 0 0 30px rgba(0,255,255,.1);
+}
+
+/* =========================
+   FORMULA DISPLAY
+========================= */
+.formula{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:22px;
+}
+
+.frac{
+  text-align:center;
+  font-weight:900;
+  font-size:18px;
+}
+
+.frac .bar{
+  height:4px;
+  margin:6px 0;
+  background:
+    linear-gradient(90deg,var(--zone-boost),var(--zone-normal));
+}
+
+.eq{
+  font-size:36px;
+  text-shadow:0 0 18px var(--zone-normal);
+}
+
+.speed-readout .big{
+  font-size:26px;
+  font-weight:900;
+  color:var(--zone-boost);
+  text-shadow:0 0 18px var(--zone-boost);
+}
+
+/* =========================
+   GRAPHS (FIXED VISIBILITY)
+========================= */
+.graphs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.graph-card{
+  background:#000c;
+  padding:8px;
+  border-radius:14px;
+  border:1px solid var(--glass-border);
+}
+
+.graph-title{
+  font-size:12px;
+  text-align:center;
+  margin-bottom:4px;
+  opacity:.8;
+}
+
+/* =========================
+   CONTROLS SIDEBAR
+========================= */
+.controls{
+  background:
+    linear-gradient(180deg,#07152e,#020714);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  overflow-y:auto;
+  box-shadow:
+    inset 0 0 50px rgba(0,255,255,.2);
+}
+
+.controls-title{
+  font-size:22px;
+  font-weight:900;
+  text-shadow:0 0 14px var(--zone-normal);
+}
+
+/* =========================
+   SLIDERS
+========================= */
+.range-row{
+  display:grid;
+  grid-template-columns:1fr 90px;
+  gap:8px;
+}
+
+input[type=range]{
+  height:6px;
+  border-radius:6px;
+  background:
+    linear-gradient(90deg,var(--zone-normal),var(--zone-boost));
+}
+
+/* =========================
+   OBJECT CARDS
+========================= */
+.obj-controls{
+  background:
+    linear-gradient(180deg,#000f,#000);
+  padding:12px;
+  border-radius:18px;
+  border:1px solid var(--glass-border);
+  box-shadow:
+    0 0 30px rgba(0,255,255,.2);
+}
+
+/* =========================
+   BUTTONS
+========================= */
+.control-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:12px;
+}
+
+.btn{
+  cursor:pointer;
+  font-weight:900;
+  background:#000;
+  border-radius:18px;
+  padding:12px;
+  border:1px solid var(--glass-border);
+  transition:.2s;
+  box-shadow:inset 0 0 20px rgba(0,255,255,.25);
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 30px rgba(0,255,255,.5);
+}
+
+.btn.primary{
+  background:
+    linear-gradient(135deg,var(--zone-boost),var(--zone-normal));
+  color:black;
+  box-shadow:0 0 40px var(--zone-boost);
+}
+
+/* =========================
+   TEACHER MODE
+========================= */
+.teacher-panel{
+  background:#000c;
+  padding:10px;
+  border-radius:14px;
+  border:1px dashed var(--zone-normal);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media(max-width:900px){
+  .app{
+    grid-template-columns:1fr;
+    grid-template-rows:auto 1fr auto;
+  }
+  .controls{
+    max-height:42vh;
+  }
+}
+/* =========================
+   GLOBAL RESPONSIVE TEXT FIX
+   (PREVENTS GIANT TEXT ON RESIZE)
+========================= */
+
+/* Prevent browser auto text zoom */
+html{
+  -webkit-text-size-adjust:100%;
+  -ms-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+
+/* Lock base font scaling safely */
+body{
+  font-size:14px;
+}
+
+/* Clamp all text to safe responsive range */
+body, 
+.app,
+.header,
+.stage,
+.controls,
+.metric,
+.controls-title,
+.obj-controls,
+button,
+input,
+label,
+.graph-title,
+.teacher-panel,
+.subtitle,
+.kbd-hint{
+  font-size:clamp(12px, 1vw + 0.4rem, 16px);
+  line-height:1.35;
+}
+
+/* Headings get controlled scaling */
+.title{
+  font-size:clamp(16px, 2vw + 0.6rem, 22px);
+}
+
+.controls-title{
+  font-size:clamp(16px, 2vw + 0.6rem, 22px);
+}
+
+.metric .big{
+  font-size:clamp(14px, 1.4vw + 0.4rem, 18px);
+}
+
+.speed-readout .big{
+  font-size:clamp(18px, 2vw + 0.5rem, 26px);
+}
+
+.eq{
+  font-size:clamp(22px, 3vw + 0.6rem, 36px);
+}
+
+/* =========================
+   CANVAS RESPONSIVE SAFETY
+========================= */
+
+canvas{
+  width:100% !important;
+  height:100% !important;
+  display:block;
+}
+
+/* Prevent viewport zoom overflow */
+.app{
+  max-width:1600px;
+  margin:0 auto;
+}
+
+/* =========================
+   TOUCH DEVICE STABILITY
+========================= */
+
+@media (pointer:coarse){
+  button,
+  input{
+    min-height:42px;
+  }
+}
