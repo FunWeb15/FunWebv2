@@ -1,493 +1,258 @@
-/* =========================
-   FUTURISTIC COLOR SYSTEM
-========================= */
+/* styles.css
+   Neon sci-fi theme, glass UI, responsive layout.
+   Accessible, large targets for touch, high contrast.
+*/
+
+/* Basic reset */
 :root{
-  --bg-main:#020611;
-  --bg-deep:#00030a;
-
-  --glass:rgba(255,255,255,0.07);
-  --glass-strong:rgba(255,255,255,0.12);
-  --glass-border:rgba(255,255,255,0.22);
-
-  --text:#e9faff;
-
-  --objA:#ff3cac;      /* neon magenta */
-  --objB:#10f0ff;      /* neon cyan */
-
-  --zone-normal:#1ccfff;
-  --zone-boost:#00ff85;
-  --zone-slow:#ff8c00;
-
-  --glow-strong:0 0 30px;
-  --glow-soft:0 0 14px;
+  --bg:#071019;
+  --panel:#0b1220cc;
+  --glass-blur:8px;
+  --accent:#00ffd5;
+  --neon-a:#ff4dff;
+  --neon-b:#00f0ff;
+  --boost:#39ff7f;
+  --slow:#ff7a3d;
+  --normal:#00e6ff;
+  --glass-outline:rgba(255,255,255,0.04);
+  --text:#e6f7ff;
+  --muted:#9fb7c8;
+  --glass-padding:14px;
+  --radius:12px;
+  --shadow: 0 6px 18px rgba(2,6,23,0.6);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-/* =========================
-   RESET
-========================= */
-*{box-sizing:border-box;}
-
-html,body{
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-}
-
+*{box-sizing:border-box}
+html,body{height:100%}
 body{
-  font-family:system-ui,Segoe UI,Arial,sans-serif;
+  margin:0;
   background:
-    radial-gradient(circle at 15% 20%,#0b2a45 0%,transparent 45%),
-    radial-gradient(circle at 85% 80%,#031e3a 0%,transparent 45%),
-    linear-gradient(180deg,var(--bg-main),var(--bg-deep));
+    radial-gradient(1200px 600px at 10% 10%, rgba(3,20,40,0.5), transparent 10%),
+    linear-gradient(180deg, #04111b 0%, var(--bg) 100%);
   color:var(--text);
-  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:20px;
 }
 
-/* =========================
-   ANIMATED AURORA BACKDROP
-========================= */
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:
-    linear-gradient(120deg,
-      transparent 20%,
-      rgba(0,255,200,.06) 40%,
-      rgba(120,0,255,.06) 60%,
-      transparent 80%);
-  animation:aurora 18s linear infinite;
-  pointer-events:none;
+/* App layout */
+.app{
+  max-width:1320px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
 }
 
-@keyframes aurora{
-  from{transform:translateX(-40%);}
-  to{transform:translateX(40%);}
+.header{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  text-align:left;
+}
+.header h1{
+  margin:0;
+  font-size:20px;
+  letter-spacing:0.4px;
+}
+.lead{margin:0;color:var(--muted);font-size:13px}
+
+/* Layout grid */
+.layout{
+  display:grid;
+  grid-template-columns: 1fr 420px;
+  gap:18px;
+}
+@media (max-width:1000px){
+  .layout{grid-template-columns: 1fr}
 }
 
-/* =========================
-   STANDARD APPEARANCE
-========================= */
-input,
-input[type=range],
-input[type=number],
-select,
-button{
-  appearance:none;
-  -webkit-appearance:none;
-  -moz-appearance:none;
-  background:#000;
-  color:var(--text);
-  border-radius:12px;
-  padding:8px;
-  border:1px solid var(--glass-border);
-  font-family:inherit;
+/* Visualization */
+.visual-panel{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.track-wrap{
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  padding:18px;
+  border-radius:16px;
+  box-shadow:var(--shadow);
+}
+#trackCanvas{
+  width:100%;
+  height:220px;
+  display:block;
+  border-radius:8px;
+  background:linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.1));
+}
+
+/* Formula panel */
+.formula-panel{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 12px;
+  border-radius:10px;
+  background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid var(--glass-outline);
+}
+.formula-row{display:flex;align-items:center;gap:12px}
+.formula-label{color:var(--muted);font-weight:600}
+.formula-box{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:8px;
+  background:rgba(255,255,255,0.02);
+  box-shadow: inset 0 -2px 8px rgba(0,0,0,0.5);
+}
+.formula-box .num, .formula-box .den{font-weight:700;color:var(--text);padding:2px 6px;border-radius:6px}
+.formula-box .num{background:rgba(3,255,170,0.06);border:1px solid rgba(3,255,170,0.06)}
+.formula-box .den{background:rgba(255,100,90,0.03)}
+.formula-box .division{opacity:0.8}
+.formula-box .units{font-size:12px;color:var(--muted);margin-left:6px}
+
+.live-speed{color:var(--muted);font-size:13px}
+
+/* Controls panel */
+.controls-panel{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.glass{
+  background:var(--panel);
+  padding:var(--glass-padding);
+  border-radius:var(--radius);
+  backdrop-filter: blur(var(--glass-blur));
+  border:1px solid var(--glass-outline);
+  box-shadow:var(--shadow);
+}
+
+/* Control grid */
+.control-grid{display:grid;gap:12px}
+.control-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.control-title{width:88px;color:var(--muted);font-weight:600;font-size:14px}
+.control-inputs{display:flex;align-items:center;gap:8px;flex:1}
+
+/* Slider styles */
+.slider{
+  flex:1;
+  appearance: none;              /* ← Standard */
+  -webkit-appearance:none;       /* ← WebKit */
+  height:10px;
+  border-radius:8px;
+  background:linear-gradient(90deg,#123 0%, #234 100%);
   outline:none;
 }
 
-/* =========================
-   MASTER GRID
-========================= */
-.app{
-  display:grid;
-  grid-template-columns:1fr 380px;
-  grid-template-rows:auto 1fr;
-  height:100%;
-  gap:16px;
-  padding:16px;
-}
-
-/* =========================
-   HEADER (HUD BAR)
-========================= */
-.header{
-  grid-column:1 / 3;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:16px 22px;
-  background:
-    linear-gradient(135deg,#08142e,#020714);
-  border-radius:24px;
-  border:1px solid var(--glass-border);
-  box-shadow:
-    0 0 40px rgba(0,255,255,.18),
-    inset 0 0 40px rgba(0,255,255,.08);
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:16px;
-}
-
-.logo{
-  width:54px;
-  height:54px;
+.slider::-webkit-slider-thumb{
+  appearance: none;              /* ← Standard */
+  -webkit-appearance:none;       /* ← WebKit */
+  width:22px;
+  height:22px;
   border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:linear-gradient(135deg,var(--objA),var(--objB));
-  color:black;
-  font-weight:900;
-  box-shadow:0 0 40px var(--objB);
+  background:linear-gradient(180deg,#fff,#ddd);
+  border:3px solid rgba(255,255,255,0.1);
+  box-shadow:0 4px 10px rgba(0,0,0,0.6), 0 0 18px rgba(0,255,200,0.15);
 }
 
-.title{font-size:22px;font-weight:900;letter-spacing:.6px;}
-.subtitle{font-size:12px;opacity:.8;}
-.kbd-hint{font-size:12px;opacity:.7}
-
-/* =========================
-   MAIN STAGE - FIXED CANVAS AREA
-========================= */
-.stage{
-  background:
-    linear-gradient(180deg,#07152e,#020714);
-  border:1px solid var(--glass-border);
-  border-radius:24px;
-  padding:16px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-  box-shadow:
-    inset 0 0 60px rgba(0,255,255,.1),
-    0 0 40px rgba(0,255,255,.15);
-}
-
-/* =========================
-   TOP BAR
-========================= */
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.object-legend{
-  display:flex;
-  gap:22px;
-  font-weight:800;
-}
-
-.swatch{
-  width:14px;
-  height:14px;
+.slider::-moz-range-thumb{
+  width:22px;
+  height:22px;
   border-radius:50%;
-  margin-right:8px;
-  box-shadow:0 0 12px;
+  background:linear-gradient(180deg,#fff,#ddd);
+  border:3px solid rgba(255,255,255,0.1);
+  box-shadow:0 4px 10px rgba(0,0,0,0.6), 0 0 18px rgba(0,255,200,0.15);
 }
 
-.swatch.a{background:var(--objA); box-shadow:0 0 14px var(--objA);}
-.swatch.b{background:var(--objB); box-shadow:0 0 14px var(--objB);}
-
-/* =========================
-   LIVE METRICS
-========================= */
-.metrics{
-  display:flex;
-  gap:12px;
+/* Firefox track */
+.slider::-moz-range-track{
+  height:10px;
+  border-radius:8px;
+  background:linear-gradient(90deg,#123 0%, #234 100%);
 }
 
-.metric{
-  background:
-    linear-gradient(180deg,#000e,#000);
-  padding:12px 16px;
-  border-radius:16px;
-  border:1px solid var(--glass-border);
-  min-width:130px;
-  box-shadow:
-    inset 0 0 18px rgba(0,255,255,.25);
-}
 
-.metric .big{
-  font-size:18px;
-  font-weight:900;
-  color:var(--zone-boost);
-  text-shadow:0 0 14px var(--zone-boost);
-}
+/* Buttons */
+.btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:transparent;color:var(--text);font-weight:700}
+.btn:focus{outline:3px solid rgba(0,255,200,0.12)}
+.btn.primary{background:linear-gradient(90deg,var(--neon-a),var(--neon-b));color:#071019;box-shadow:0 8px 30px rgba(0,200,255,0.08)}
+.btn.secondary{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
 
-/* =========================
-   CANVAS FRAME (FIXED)
-========================= */
-.canvas-wrap{
-  flex:1;
-  position:relative;
-  background:
-    radial-gradient(circle at center,#06152e,#000);
-  border-radius:22px;
-  overflow:hidden;
-  border:1px solid var(--glass-border);
-  box-shadow:
-    inset 0 0 80px rgba(0,255,255,.25),
-    0 0 40px rgba(0,255,255,.2);
-}
+.button-row{display:flex;gap:8px}
 
-/* =========================
-   FORMULA & GRAPHS SECTION
-========================= */
-.panels{
-  display:grid;
-  grid-template-columns:1fr 1.6fr;
-  gap:14px;
+/* Graphs */
+.graphs{padding:12px}
+.graph-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:900px){
+  .graph-grid{grid-template-columns:1fr 1fr}
 }
+.graph-item{background:rgba(0,0,0,0.15);padding:8px;border-radius:8px}
+.graph-title{font-size:13px;color:var(--muted);margin-bottom:6px}
+canvas{display:block;width:100%;height:auto;border-radius:6px}
 
-.glass{
-  background:
-    linear-gradient(180deg,#0b1a3a,#050b18);
-  border:1px solid var(--glass-border);
-  border-radius:20px;
-  padding:14px;
-  box-shadow:
-    0 0 30px rgba(0,255,255,.2),
-    inset 0 0 30px rgba(0,255,255,.1);
-}
-
-/* =========================
-   FORMULA DISPLAY
-========================= */
-.formula{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:22px;
-}
-
-.frac{
-  text-align:center;
-  font-weight:900;
-  font-size:18px;
-}
-
-.frac .bar{
-  height:4px;
-  margin:6px 0;
-  background:
-    linear-gradient(90deg,var(--zone-boost),var(--zone-normal));
-}
-
-.eq{
-  font-size:36px;
-  text-shadow:0 0 18px var(--zone-normal);
-}
-
-.speed-readout .big{
-  font-size:26px;
-  font-weight:900;
-  color:var(--zone-boost);
-  text-shadow:0 0 18px var(--zone-boost);
-}
-
-/* =========================
-   GRAPHS (FIXED VISIBILITY)
-========================= */
-.graphs{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-
-.graph-card{
-  background:#000c;
-  padding:8px;
-  border-radius:14px;
-  border:1px solid var(--glass-border);
-}
-
-.graph-title{
-  font-size:12px;
-  text-align:center;
-  margin-bottom:4px;
-  opacity:.8;
-}
-
-/* =========================
-   CONTROLS SIDEBAR
-========================= */
-.controls{
-  background:
-    linear-gradient(180deg,#07152e,#020714);
-  border:1px solid var(--glass-border);
-  border-radius:24px;
-  padding:16px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-  overflow-y:auto;
-  box-shadow:
-    inset 0 0 50px rgba(0,255,255,.2);
-}
-
-.controls-title{
-  font-size:22px;
-  font-weight:900;
-  text-shadow:0 0 14px var(--zone-normal);
-}
-
-/* =========================
-   SLIDERS
-========================= */
-.range-row{
-  display:grid;
-  grid-template-columns:1fr 90px;
-  gap:8px;
-}
-
-input[type=range]{
-  height:6px;
+/* Tooltip for graphs */
+.graph-tooltip{
+  position:fixed;
+  pointer-events:none;
+  background:rgba(7,16,25,0.95);
+  color:var(--text);
+  padding:8px 10px;
   border-radius:6px;
-  background:
-    linear-gradient(90deg,var(--zone-normal),var(--zone-boost));
+  font-size:12px;
+  border:1px solid rgba(255,255,255,0.04);
+  transform:translate(-50%,-120%);
+  white-space:nowrap;
+  display:none;
+  z-index:999;
 }
 
-/* =========================
-   OBJECT CARDS
-========================= */
-.obj-controls{
-  background:
-    linear-gradient(180deg,#000f,#000);
-  padding:12px;
-  border-radius:18px;
-  border:1px solid var(--glass-border);
-  box-shadow:
-    0 0 30px rgba(0,255,255,.2);
+/* Footer */
+.footer{color:var(--muted);font-size:12px;text-align:center;padding:8px}
+
+/* Accessibility: larger touch targets on small screens */
+@media (max-width:600px){
+  .number{width:68px;padding:10px}
+  .btn{padding:12px 14px}
+  .control-title{width:84px;font-size:13px}
+}
+.speed-tracker {
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--glass-outline);
+  backdrop-filter: blur(8px);
 }
 
-/* =========================
-   BUTTONS
-========================= */
-.control-actions{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:12px;
+.speed-tracker h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  color: var(--accent);
 }
 
-.btn{
-  cursor:pointer;
-  font-weight:900;
-  background:#000;
-  border-radius:18px;
-  padding:12px;
-  border:1px solid var(--glass-border);
-  transition:.2s;
-  box-shadow:inset 0 0 20px rgba(0,255,255,.25);
+.speed-line {
+  font-size: 14px;
+  color: var(--text);
+}
+.object-controls {
+  padding: 12px;
+  background: #0c1624;
+  border-radius: 10px;
+  margin-top: 12px;
+  border: 1px solid #1a2a3a;
 }
 
-.btn:hover{
-  transform:translateY(-2px);
-  box-shadow:0 0 30px rgba(0,255,255,.5);
-}
-
-.btn.primary{
-  background:
-    linear-gradient(135deg,var(--zone-boost),var(--zone-normal));
-  color:black;
-  box-shadow:0 0 40px var(--zone-boost);
-}
-
-/* =========================
-   TEACHER MODE
-========================= */
-.teacher-panel{
-  background:#000c;
-  padding:10px;
-  border-radius:14px;
-  border:1px dashed var(--zone-normal);
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-@media(max-width:900px){
-  .app{
-    grid-template-columns:1fr;
-    grid-template-rows:auto 1fr auto;
-  }
-  .controls{
-    max-height:42vh;
-  }
-}
-/* =========================
-   GLOBAL RESPONSIVE TEXT FIX
-   (PREVENTS GIANT TEXT ON RESIZE)
-========================= */
-
-/* Prevent browser auto text zoom */
-html{
-  -webkit-text-size-adjust:100%;
-  -ms-text-size-adjust:100%;
-  text-size-adjust:100%;
-}
-
-/* Lock base font scaling safely */
-body{
-  font-size:14px;
-}
-
-/* Clamp all text to safe responsive range */
-body, 
-.app,
-.header,
-.stage,
-.controls,
-.metric,
-.controls-title,
-.obj-controls,
-button,
-input,
-label,
-.graph-title,
-.teacher-panel,
-.subtitle,
-.kbd-hint{
-  font-size:clamp(12px, 1vw + 0.4rem, 16px);
-  line-height:1.35;
-}
-
-/* Headings get controlled scaling */
-.title{
-  font-size:clamp(16px, 2vw + 0.6rem, 22px);
-}
-
-.controls-title{
-  font-size:clamp(16px, 2vw + 0.6rem, 22px);
-}
-
-.metric .big{
-  font-size:clamp(14px, 1.4vw + 0.4rem, 18px);
-}
-
-.speed-readout .big{
-  font-size:clamp(18px, 2vw + 0.5rem, 26px);
-}
-
-.eq{
-  font-size:clamp(22px, 3vw + 0.6rem, 36px);
-}
-
-/* =========================
-   CANVAS RESPONSIVE SAFETY
-========================= */
-
-canvas{
-  width:100% !important;
-  height:100% !important;
-  display:block;
-}
-
-/* Prevent viewport zoom overflow */
-.app{
-  max-width:1600px;
-  margin:0 auto;
-}
-
-/* =========================
-   TOUCH DEVICE STABILITY
-========================= */
-
-@media (pointer:coarse){
-  button,
-  input{
-    min-height:42px;
-  }
+.object-controls h3 {
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: #9fb7c8;
 }

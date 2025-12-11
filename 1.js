@@ -1,562 +1,360 @@
-/* sims.js
-   Professional, full-featured simulation script (drop-in replacement).
-   - DPR-aware canvas & graph handling
-   - Zones: normal / boost / slow with multipliers & particle effects
-   - Trails, velocity vectors, glow
-   - Mass affects speed (pedagogical: speed ∝ (baseSpeed * speedMult * zoneMult) / mass)
-   - Friction (global resistance), turbo (time-scaling)
-   - Unit toggle (m/s <-> km/h) using your <select id="unitToggle">
-   - Live Distance & Speed readouts for A and B
-   - Distance vs Time and Speed vs Time graphs with axes, ticks, hover tooltip
-   - Teacher mode, keyboard (Space/R), touch behavior
-   - Defensive checks for missing DOM elements (won't break)
-   - Modular, commented, performance-considered
+/* script.js
+   All logic for the motion simulation.
+   - Pure JS, no external libs
+   - requestAnimationFrame driven
+   - Two objects (A & B)
+   - Zones with multipliers
+   - Sliders: Time, Distance, Mass, Friction (ONLY)
+   - Canvas graphs: Distance vs Time & Speed vs Time
+   - Accessible controls, defensive programming
 */
 
-(function () {
-  'use strict';
+try {
+  // DOM references
+  const trackCanvas = document.getElementById('trackCanvas');
+  const trackCtx = trackCanvas.getContext('2d', { alpha: true });
+  const distanceGraph = document.getElementById('distanceGraph');
+  const distanceCtx = distanceGraph.getContext('2d', { alpha: false });
+  const speedGraph = document.getElementById('speedGraph');
+  const speedCtx = speedGraph.getContext('2d', { alpha: false });
 
-  // ------------------------
-  // Utility helpers
-  // ------------------------
-  const $ = id => document.getElementById(id);
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const fmt = (v, p = 2) => (isFinite(v) ? v.toFixed(p) : '0');
-  const nowMs = () => performance.now();
+  // Controls
+  const distanceRange = document.getElementById('distanceRange');
+  const distanceNumber = document.getElementById('distanceNumber');
+  const timeRange = document.getElementById('timeRange');
+  const timeNumber = document.getElementById('timeNumber');
+  const massRange = document.getElementById('massRange');
+  const massNumber = document.getElementById('massNumber');
+  const frictionRange = document.getElementById('frictionRange');
+  const frictionNumber = document.getElementById('frictionNumber');
 
-  function hexToRgba(hex = '#ffffff', a = 1) {
-    try {
-      const h = hex.replace('#', '');
-      const bigint = parseInt(h, 16);
-      const r = (bigint >> 16) & 255;
-      const g = (bigint >> 8) & 255;
-      const b = bigint & 255;
-      return `rgba(${r},${g},${b},${a})`;
-    } catch (e) {
-      return `rgba(255,255,255,${a})`;
-    }
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const unitsToggle = document.getElementById('unitsToggle');
+
+  // Info panel
+  const liveSpeed = document.getElementById('liveSpeed');
+  const formulaDistance = document.getElementById('formulaDistance');
+  const formulaTime = document.getElementById('formulaTime');
+  const formulaUnits = document.getElementById('formulaUnits');
+  const graphTooltip = document.getElementById('graphTooltip');
+
+  // Responsive canvas sizing helper
+  function resizeCanvases() {
+    const ratio = Math.max(1, window.devicePixelRatio || 1);
+    const rect = trackCanvas.getBoundingClientRect();
+    trackCanvas.width = Math.floor(rect.width * ratio);
+    trackCanvas.height = Math.floor(rect.height * ratio);
+    trackCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    const dRect = distanceGraph.getBoundingClientRect();
+    distanceGraph.width = Math.floor(dRect.width * ratio);
+    distanceGraph.height = Math.floor(dRect.height * ratio);
+    distanceCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    const sRect = speedGraph.getBoundingClientRect();
+    speedGraph.width = Math.floor(sRect.width * ratio);
+    speedGraph.height = Math.floor(sRect.height * ratio);
+    speedCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 
-  // Read CSS color variables (fallbacks)
-  const css = getComputedStyle(document.documentElement);
-  const COLOR_A = (css.getPropertyValue('--objA') || '#ff3cac').trim();
-  const COLOR_B = (css.getPropertyValue('--objB') || '#10f0ff').trim();
-  const ZONE_NORMAL = (css.getPropertyValue('--zone-normal') || '#1ccfff').trim();
-  const ZONE_BOOST = (css.getPropertyValue('--zone-boost') || '#00ff85').trim();
-  const ZONE_SLOW = (css.getPropertyValue('--zone-slow') || '#ff8c00').trim();
-
-  // ------------------------
-  // DOM bindings (defensive)
-  // ------------------------
-  const trackCanvas = $('trackCanvas');
-  const distGraph = $('distGraph');
-  const speedGraph = $('speedGraph');
-  const tooltip = $('tooltip');
-
-  if (!trackCanvas || !distGraph || !speedGraph) {
-    console.error('Required canvas elements (#trackCanvas, #distGraph, #speedGraph) are missing from HTML.');
-    return;
-  }
-
-  const trackCtx = trackCanvas.getContext('2d');
-  const distCtx = distGraph.getContext('2d');
-  const speedCtx = speedGraph.getContext('2d');
-
-  // Controls / readouts
-  const speedDisplay = $('speedDisplay') || null;
-  const distAEl = $('distanceDisplayA') || null;
-  const distBEl = $('distanceDisplayB') || null;
-  const computedSpeedEl = $('computedSpeed') || null;
-  const computedUnitEl = $('computedUnit') || null;
-
-  const startBtn = $('startBtn');
-  const pauseBtn = $('pauseBtn');
-  const resetBtn = $('resetBtn');
-
-  const distanceRange = $('distanceRange');
-  const distanceInput = $('distanceInput');
-  const timeRange = $('timeRange');
-  const timeInput = $('timeInput');
-
-  const frictionRange = $('frictionRange');
-  const frictionInput = $('frictionInput');
-
-  const turboRange = $('turboRange');
-  const turboInput = $('turboInput');
-
-  const massARange = $('massARange');
-  const massAInput = $('massAInput');
-  const speedAMultRange = $('speedAMultRange');
-  const speedAMultInput = $('speedAMultInput');
-
-  const massBRange = $('massBRange');
-  const massBInput = $('massBInput');
-  const speedBMultRange = $('speedBMultRange');
-  const speedBMultInput = $('speedBMultInput');
-
-  const unitSelect = $('unitToggle'); // <select> with values 'm_s' or 'km_h'
-  const teacherToggle = $('teacherToggle');
-  const teacherPanel = $('teacherPanel');
-
-  // provide safe fallbacks if optional inputs not present
-  function safeEl(el, name) {
-    if (!el) console.warn(`Optional element #${name} not found; UI will be limited.`);
-    return el;
-  }
-
-  safeEl(speedDisplay, 'speedDisplay');
-  safeEl(distAEl, 'distanceDisplayA');
-  safeEl(distBEl, 'distanceDisplayB');
-
-  // ------------------------
-  // Simulation state
-  // ------------------------
-  const state = {
-    running: false,
-    lastTs: null,
-    simTime: 0,
-    dpr: Math.min(window.devicePixelRatio || 1, 2),
-    // track geometry in device pixels (set in resize)
-    width: 1000,
-    height: 400,
-    trackPad: 60,
-    trackStartPx: 60,
-    trackEndPx: 940,
-    trackLenPx: 880,
-    // zones will be computed
-    zones: []
-  };
-
-  // objects: keep structural parity with earlier code
-  const objects = {
-    A: { id: 'A', color: COLOR_A, mass: 1.0, speedMult: 1.0, covered_m: 0, trail: [] },
-    B: { id: 'B', color: COLOR_B, mass: 1.2, speedMult: 0.98, covered_m: 0, trail: [] }
-  };
-
-  // graph samples (bounded size)
-  const samples = {
-    t: [],
-    aDist: [],
-    bDist: [],
-    aSpeed: [],
-    bSpeed: [],
-    max: 1500
-  };
-
-  // particles for boost zone visual
-  const particles = [];
-
-  // ------------------------
-  // Resize handling & DPR-aware canvases
-  // ------------------------
-  function resizeAll() {
-    try {
-      state.dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-      // track canvas matches parent
-      const wrapRect = trackCanvas.parentElement.getBoundingClientRect();
-      // enforce minimum sizes in physical pixels
-      const cw = Math.max(600, Math.floor(wrapRect.width * state.dpr));
-      const ch = Math.max(300, Math.floor(wrapRect.height * state.dpr));
-      trackCanvas.width = cw;
-      trackCanvas.height = ch;
-      trackCanvas.style.width = `${wrapRect.width}px`;
-      trackCanvas.style.height = `${wrapRect.height}px`;
-
-      // graphs
-      const dRect = distGraph.getBoundingClientRect();
-      const sRect = speedGraph.getBoundingClientRect();
-      distGraph.width = Math.max(300, Math.floor(dRect.width * state.dpr));
-      distGraph.height = Math.max(120, Math.floor(dRect.height * state.dpr));
-      speedGraph.width = Math.max(300, Math.floor(sRect.width * state.dpr));
-      speedGraph.height = Math.max(120, Math.floor(sRect.height * state.dpr));
-
-      state.width = trackCanvas.width;
-      state.height = trackCanvas.height;
-
-      computeZones();
-      // redraw static layers
-      drawStaticTrack();
-      drawFrame();
-      drawGraphs();
-    } catch (e) {
-      console.warn('resizeAll failed', e);
-    }
-  }
-
-  window.addEventListener('resize', () => setTimeout(resizeAll, 60));
-  window.addEventListener('orientationchange', () => setTimeout(resizeAll, 140));
-
-  // ------------------------
-  // Zones (visual & multipliers)
-  // ------------------------
-  function computeZones() {
-    const pad = Math.round(state.width * 0.06);
-    const startX = pad;
-    const endX = state.width - pad;
-    const total = endX - startX;
-    const normalW = total * 0.35;
-    const boostW = total * 0.3;
-    const slowW = total - (normalW + boostW);
-
-    state.trackPad = pad;
-    state.trackStartPx = startX;
-    state.trackEndPx = endX;
-    state.trackLenPx = total;
-
-    state.zones = [
-      { id: 'normal', x: startX, w: normalW, color: ZONE_NORMAL, multiplier: 1.0 },
-      { id: 'boost', x: startX + normalW, w: boostW, color: ZONE_BOOST, multiplier: 1.5 },
-      { id: 'slow', x: startX + normalW + boostW, w: slowW, color: ZONE_SLOW, multiplier: 0.6 }
-    ];
-  }
-
-  function zoneAtPx(px) {
-    for (const z of state.zones) if (px >= z.x && px <= z.x + z.w) return z;
-    return state.zones[0];
-  }
-
-  // ------------------------
-  // Unit helpers
-  // ------------------------
-  function isKmHSelected() {
-    if (!unitSelect) return false;
-    // unitSelect is <select> with values e.g. 'm_s' or 'km_h'
-    return (unitSelect.value === 'km_h' || unitSelect.value === 'km/h');
-  }
-
-  // base speed in m/s (Distance / Time)
-  function baseSpeed_mps() {
-    // Distance and Time inputs may be absent; fall back to defaults
-    const d = (distanceInput && Number(distanceInput.value)) || (distanceRange && Number(distanceRange.value)) || 100;
-    const t = (timeInput && Number(timeInput.value)) || (timeRange && Number(timeRange.value)) || 10;
-    if (isKmHSelected()) {
-      // if UI in km/h, we assume distanceInput is km and timeInput is hours
-      // convert: km -> m, hours -> s
-      const d_m = d * 1000;
-      const t_s = Math.max(0.0001, t * 3600);
-      return d_m / t_s;
-    } else {
-      const d_m = d;
-      const t_s = Math.max(0.0001, t);
-      return d_m / t_s;
-    }
-  }
-
-  function formatSpeedDisplay(mps) {
-    if (isKmHSelected()) {
-      return (mps * 3.6).toFixed(2) + ' km/h';
-    } else {
-      return mps.toFixed(2) + ' m/s';
-    }
-  }
-
-  function formatDistanceDisplay(m) {
-    if (isKmHSelected()) return (m / 1000).toFixed(3) + ' km';
-    return m.toFixed(2) + ' m';
-  }
-
-  // ------------------------
-  // UI Binding helpers
-  // ------------------------
-  function bindRangeNumber(rangeEl, numEl, onChange) {
-    if (!rangeEl || !numEl) return;
-    rangeEl.addEventListener('input', () => {
-      numEl.value = rangeEl.value;
-      try { onChange && onChange(); } catch (e) { console.warn(e); }
-    });
-    numEl.addEventListener('change', () => {
-      let v = parseFloat(numEl.value);
-      if (!isFinite(v)) v = parseFloat(rangeEl.value) || 0;
-      v = clamp(v, Number(rangeEl.min || -Infinity), Number(rangeEl.max || Infinity));
-      numEl.value = v;
-      rangeEl.value = v;
-      try { onChange && onChange(); } catch (e) { console.warn(e); }
-    });
-  }
-
-  // Connect pairs if they exist
-  bindRangeNumber(distanceRange, distanceInput, () => { drawStaticTrack(); drawGraphs(); });
-  bindRangeNumber(timeRange, timeInput, () => { drawStaticTrack(); drawGraphs(); });
-  bindRangeNumber(frictionRange, frictionInput, () => {});
-  bindRangeNumber(turboRange, turboInput, () => {});
-  bindRangeNumber(massARange, massAInput, () => objects.A.mass = Number(massAInput.value));
-  bindRangeNumber(massBRange, massBInput, () => objects.B.mass = Number(massBInput.value));
-  bindRangeNumber(speedAMultRange, speedAMultInput, () => objects.A.speedMult = Number(speedAMultInput.value));
-  bindRangeNumber(speedBMultRange, speedBMultInput, () => objects.B.speedMult = Number(speedBMultInput.value));
-
-  // Unit select changes: update computed label units and display formatting
-  if (unitSelect) {
-    unitSelect.addEventListener('change', () => {
-      if (computedUnitEl) {
-        computedUnitEl.textContent = isKmHSelected() ? 'km/h' : 'm/s';
-      }
-      // refresh displays & graphs
-      updateDisplays(0);
-      drawGraphs();
-    });
-  }
-
-  // Teacher toggle
-  if (teacherToggle && teacherPanel) {
-    teacherToggle.addEventListener('change', () => {
-      teacherPanel.hidden = !teacherToggle.checked;
-    });
-  }
-
-  // ------------------------
-  // Simulation Controls
-  // ------------------------
-  function resetSimulation() {
-    state.running = false;
-    state.lastTs = null;
-    state.simTime = 0;
-
-    // reset objects
-    objects.A.covered_m = 0;
-    objects.B.covered_m = 0;
-    objects.A.trail = [];
-    objects.B.trail = [];
-
-    // reset samples
-    samples.t.length = 0;
-    samples.aDist.length = 0;
-    samples.bDist.length = 0;
-    samples.aSpeed.length = 0;
-    samples.bSpeed.length = 0;
-
-    particles.length = 0;
-    updateDisplays(0);
-    drawStaticTrack();
+  window.addEventListener('resize', () => {
+    resizeCanvases();
+    drawStaticTrack(); // redraw zones on resize
     drawFrame();
     drawGraphs();
-  }
-
-  function startSimulation() {
-    if (state.running) return;
-    // If we're at the beginning, reset samples to start fresh
-    if (state.simTime <= 0) resetSimulation();
-    state.running = true;
-    state.lastTs = null;
-    requestAnimationFrame(simTick);
-  }
-
-  function pauseSimulation() {
-    state.running = false;
-  }
-
-  // Attach buttons (defensive)
-  if (startBtn) startBtn.addEventListener('click', startSimulation);
-  if (pauseBtn) pauseBtn.addEventListener('click', pauseSimulation);
-  if (resetBtn) resetBtn.addEventListener('click', resetSimulation);
-
-  // Keyboard shortcuts: Space toggles start/pause, R resets
-  window.addEventListener('keydown', (ev) => {
-    if (ev.code === 'Space') {
-      ev.preventDefault();
-      state.running ? pauseSimulation() : startSimulation();
-    }
-    if (ev.key === 'r' || ev.key === 'R') resetSimulation();
   });
 
-  // Touch/click on canvas toggles start/pause
-  trackCanvas.addEventListener('click', () => state.running ? pauseSimulation() : startSimulation());
-  trackCanvas.addEventListener('touchstart', () => state.running ? pauseSimulation() : startSimulation());
+  // Initial resize
+  resizeCanvases();
 
-  // ------------------------
-  // Physics model
-  // ------------------------
-  function effectiveSpeedFor(obj) {
-    // base speed (m/s)
-    const base = baseSpeed_mps();
-    if (!(isFinite(base) && base > 0)) return 0;
-    // mass factor: pedagogical model; large mass slower
-    const massFactor = 1 / Math.max(0.0001, obj.mass); // avoid div by zero
-    // find zone multiplier by current pixel position
-    const px = distanceToPixel(obj.covered_m);
-    const zone = zoneAtPx(px);
-    const zoneMult = zone ? zone.multiplier : 1;
-    // combined
-    const eff = base * (obj.speedMult || 1) * zoneMult * massFactor;
-    // clamp to avoid runaway
-    return clamp(eff, 0, base * Math.max(0.01, obj.speedMult || 1) * 6);
+  /* ===========================
+     Simulation parameters & state
+     =========================== */
+
+  // Zone definitions (fractions of track width)
+  const zones = [
+    { name: 'normal', color: '#00e6ff', multiplier: 1.0, start: 0.0, end: 0.45 },
+    { name: 'boost', color: '#39ff7f', multiplier: 1.5, start: 0.45, end: 0.7 },
+    { name: 'slow', color: '#ff7a3d', multiplier: 0.6, start: 0.7, end: 1.0 }
+  ];
+
+  // Colors for objects A & B
+  const objectAColor = '#ff4dff';
+  const objectBColor = '#00f0ff';
+
+  // Simulation runtime state
+  let sim = {
+    running: false,
+    lastTime: null,
+    elapsed: 0,
+    simTimeScale: 1,
+  };
+
+  // Objects state factory
+  function makeObject(id, color, baseOffset) {
+    return {
+      id,
+      color,
+      baseOffset,
+      x: 0,
+      y: 0,
+      trail: [],
+      currentSpeed: 0, // m/s
+      targetSpeed: 0,  // m/s
+      distanceTravelled: 0 // meters
+    };
+  }
+  const objA = makeObject('A', objectAColor, 0);
+  const objB = makeObject('B', objectBColor, 0.02);
+
+  // ===========================
+  // Live Speed Tracker (Object A & B)
+  // Updates the two DOM readouts inserted in HTML
+  // ===========================
+  function updateSpeedTracker() {
+    const speedA_ms = safeNumber(objA.currentSpeed, 0);
+    const speedB_ms = safeNumber(objB.currentSpeed, 0);
+
+    const elAms = document.getElementById("speedA-ms");
+    const elAkm = document.getElementById("speedA-kmh");
+    const elBms = document.getElementById("speedB-ms");
+    const elBkm = document.getElementById("speedB-kmh");
+
+    if (elAms) elAms.textContent = `${speedA_ms.toFixed(2)} m/s`;
+    if (elAkm) elAkm.textContent = `${(speedA_ms * 3.6).toFixed(2)} km/h`;
+    if (elBms) elBms.textContent = `${speedB_ms.toFixed(2)} m/s`;
+    if (elBkm) elBkm.textContent = `${(speedB_ms * 3.6).toFixed(2)} km/h`;
   }
 
-  // ------------------------
-  // Distance <-> Pixel mapping
-  // ------------------------
-  function distanceToPixel(distMeters) {
-    if ((distanceInput && Number(distanceInput.value)) || (distanceRange && Number(distanceRange.value))) {
-      // use UI distance as total
-      const totalDist = isKmHSelected() ? Number(distanceInput ? distanceInput.value : distanceRange.value) * 1000 : Number(distanceInput ? distanceInput.value : distanceRange.value);
-      if (totalDist <= 0) return state.trackStartPx;
-      const frac = clamp(distMeters / totalDist, 0, 1);
-      return state.trackStartPx + frac * state.trackLenPx;
+  // Simulation parameters (linked to sliders)
+  const params = {
+    distance_m: Number(distanceRange.value) || 100,
+    time_s: Number(timeRange.value) || 10,
+    mass_kg: Number(massRange.value) || 10,
+    friction_pct: Number(frictionRange.value) || 5,
+    units: 'm_s'
+  };
+// NEW: Separate Object A & B physics parameters
+params.massA = 10;
+params.massB = 10;
+params.frictionA = 5;
+params.frictionB = 5;
+
+  const MAX_TIME_SECONDS = 3600;
+  const MAX_DISTANCE_METERS = 10000;
+
+  let graphData = { time: [], distanceA: [], distanceB: [], speedA: [], speedB: [] };
+
+  /* ===========================
+     Utility functions
+     =========================== */
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function safeNumber(n, fallback = 0) { return (typeof n === 'number' && Number.isFinite(n)) ? n : fallback; }
+  function metersToKm(m) { return m / 1000; }
+  function kmhToMs(kmh) { return kmh * 1000 / 3600; }
+  function msToKmh(ms) { return ms * 3600 / 1000; }
+
+  // Update formula display units text
+  function updateFormulaUnits() {
+    if (!formulaUnits) return;
+    if (params.units === 'm_s') {
+      formulaUnits.textContent = 'm / s';
+      const du = document.getElementById('distanceUnits');
+      const tu = document.getElementById('timeUnits');
+      if (du) du.textContent = 'm';
+      if (tu) tu.textContent = 's';
     } else {
-      // fallback to internal track length mapping using current state.distance (if you stored)
-      // assume a default distance of 100 m
-      const totalDist = 100;
-      const frac = clamp(distMeters / totalDist, 0, 1);
-      return state.trackStartPx + frac * state.trackLenPx;
+      formulaUnits.textContent = 'km / h';
+      const du = document.getElementById('distanceUnits');
+      const tu = document.getElementById('timeUnits');
+      if (du) du.textContent = 'km';
+      if (tu) tu.textContent = 'h';
     }
   }
 
-  function pixelToDistance(px) {
-    const frac = (px - state.trackStartPx) / state.trackLenPx;
-    // match the UI distance unit
-    const totalDistUI = isKmHSelected() ? Number(distanceInput ? distanceInput.value : distanceRange.value) * 1000 : Number(distanceInput ? distanceInput.value : distanceRange.value);
-    const totalDist = (isFinite(totalDistUI) && totalDistUI > 0) ? totalDistUI : 100;
-    return clamp(frac, 0, 1) * totalDist;
+  /* ===========================
+     Input synchronization (sliders + numbers)
+     =========================== */
+  function bindRangeNumber(rangeEl, numberEl, onChange) {
+    if (!rangeEl || !numberEl) return;
+    rangeEl.addEventListener('input', () => {
+      try {
+        const v = safeNumber(Number(rangeEl.value));
+        numberEl.value = v;
+        onChange(v);
+      } catch (e) { console.error(e); }
+    });
+
+    numberEl.addEventListener('input', () => {
+      try {
+        let v = Number(numberEl.value);
+        if (!Number.isFinite(v)) v = Number(rangeEl.value);
+        v = clamp(v, Number(rangeEl.min), Number(rangeEl.max));
+        numberEl.value = v;
+        rangeEl.value = v;
+        onChange(v);
+      } catch (e) { console.error(e); }
+    });
+
+    numberEl.addEventListener('keydown', (ev) => {
+      if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        const step = Number(rangeEl.step) || 1;
+        const cur = Number(numberEl.value) || 0;
+        numberEl.value = ev.key === 'ArrowUp' ? cur + step : cur - step;
+        numberEl.dispatchEvent(new Event('input'));
+      }
+    });
   }
 
-  // ------------------------
-  // Simulation tick (requestAnimationFrame)
-  // ------------------------
-  function simTick(ts) {
-    try {
-      if (!state.running) return;
-      if (!state.lastTs) state.lastTs = ts;
-      const dtMs = ts - state.lastTs;
-      state.lastTs = ts;
-      const dt = dtMs / 1000; // seconds
-      state.simTime += dt;
+  // apply binds with bounds
+  bindRangeNumber(distanceRange, distanceNumber, (v) => {
+    params.distance_m = clamp(Number(v), 1, MAX_DISTANCE_METERS);
+    if (formulaDistance) formulaDistance.textContent = formatDistanceForFormula(params.distance_m);
+    computeTargetSpeeds();
+    resetGraphsIfNotRunning();
+  });
 
-      // UI values can change live
-      const friction = (frictionInput && Number(frictionInput.value)) || (frictionRange && Number(frictionRange.value)) || 0;
-      const turbo = (turboInput && Number(turboInput.value)) || (turboRange && Number(turboRange.value)) || 1;
+  bindRangeNumber(timeRange, timeNumber, (v) => {
+    params.time_s = clamp(Number(v), 1, MAX_TIME_SECONDS);
+    if (formulaTime) formulaTime.textContent = formatTimeForFormula(params.time_s);
+    computeTargetSpeeds();
+    resetGraphsIfNotRunning();
+  });
 
-      // update objects with physics
-      ['A', 'B'].forEach(k => {
-        const obj = objects[k];
-        // effective speed in m/s (before friction)
-        const eff = effectiveSpeedFor(obj);
-        // apply friction as percentage reduction (simple model)
-        const effAfterF = eff * (1 - clamp(friction, 0, 0.99));
-        // apply turbo to time scale: turbo >1 speeds up animation (we treat as multiplier for eff)
-        const finalSpeed = effAfterF * clamp(turbo, 0.1, 4);
-        // integrate distance (meters)
-        obj.covered_m = clamp(obj.covered_m + finalSpeed * dt, 0, isKmHSelected() ? (Number(distanceInput ? distanceInput.value : distanceRange.value) * 1000) : Number(distanceInput ? distanceInput.value : distanceRange.value));
-        // add trail sample (store pixel x + time)
-        obj.trail.push({ x: distanceToPixel(obj.covered_m), t: state.simTime });
-        if (obj.trail.length > 1000) obj.trail.shift();
-      });
+  bindRangeNumber(massRange, massNumber, (v) => {
+    params.mass_kg = clamp(Number(v), 1, 200);
+  });
 
-      // sample for graphs (push)
-      samples.t.push(state.simTime);
-      samples.aDist.push(objects.A.covered_m);
-      samples.bDist.push(objects.B.covered_m);
+  bindRangeNumber(frictionRange, frictionNumber, (v) => {
+    params.friction_pct = clamp(Number(v), 0, 100);
+  });
+/* ======================================================
+   NEW: Separate controls for Object A and Object B
+   ====================================================== */
 
-      // compute instantaneous speeds for graphs (based on recent sample diffs)
-      let aInst = 0, bInst = 0;
-      const n = samples.t.length;
-      if (n >= 2) {
-        const dtS = samples.t[n - 1] - samples.t[n - 2];
-        if (dtS > 0) {
-          aInst = (samples.aDist[n - 1] - samples.aDist[n - 2]) / dtS;
-          bInst = (samples.bDist[n - 1] - samples.bDist[n - 2]) / dtS;
-        }
-      }
-      samples.aSpeed.push(aInst);
-      samples.bSpeed.push(bInst);
+bindRangeNumber(massARange, massANumber, (v) => {
+  params.massA = clamp(Number(v), 1, 200);
+});
 
-      // update displays (show object A speed as primary)
-      const displaySpeed = isKmHSelected() ? aInst * 3.6 : aInst;
-      updateDisplays(displaySpeed);
+bindRangeNumber(frictionARange, frictionANumber, (v) => {
+  params.frictionA = clamp(Number(v), 0, 100);
+});
 
-      // draw frame
-      drawFrame();
+bindRangeNumber(massBRange, massBNumber, (v) => {
+  params.massB = clamp(Number(v), 1, 200);
+});
 
-      // update graphs periodically to save cycles
-      if (samples.t.length % 3 === 0) drawGraphs();
+bindRangeNumber(frictionBRange, frictionBNumber, (v) => {
+  params.frictionB = clamp(Number(v), 0, 100);
+});
 
-      // end condition: both reached finish OR either reached finish
-      const totalDistanceMeters = isKmHSelected() ? Number(distanceInput ? distanceInput.value : distanceRange.value) * 1000 : Number(distanceInput ? distanceInput.value : distanceRange.value);
-      const endedA = (objects.A.covered_m >= totalDistanceMeters);
-      const endedB = (objects.B.covered_m >= totalDistanceMeters);
-      if (endedA || endedB) {
-        state.running = false;
-        drawGraphs();
-        // announce winner gently (non-blocking)
-        setTimeout(() => {
-          try {
-            const msg = endedA && endedB ? 'It\'s a tie!' : (endedA ? 'Object A reaches the finish first!' : 'Object B reaches the finish first!');
-            // create an accessible live region update instead of alert if possible
-            if (speedDisplay) {
-              const old = speedDisplay.textContent;
-              speedDisplay.textContent = msg;
-              setTimeout(() => { if (speedDisplay) speedDisplay.textContent = old; }, 3000);
-            } else {
-              // fallback
-              console.log(msg);
-            }
-          } catch (e) { /* ignore */ }
-        }, 200);
-        return;
-      }
-
-      // trim samples if necessary
-      if (samples.t.length > samples.max) {
-        samples.t.shift(); samples.aDist.shift(); samples.bDist.shift(); samples.aSpeed.shift(); samples.bSpeed.shift();
-      }
-
-      requestAnimationFrame(simTick);
-    } catch (err) {
-      console.error('simTick error', err);
-      state.running = false;
-    }
+  // Units toggle
+  if (unitsToggle) {
+    unitsToggle.addEventListener('click', () => {
+      try {
+        params.units = params.units === 'm_s' ? 'km_h' : 'm_s';
+        unitsToggle.textContent = params.units === 'm_s' ? 'm / s' : 'km / h';
+        unitsToggle.setAttribute('aria-pressed', params.units === 'km_h' ? 'true' : 'false');
+        updateFormulaUnits();
+        computeTargetSpeeds();
+      } catch (e) { console.error(e); }
+    });
   }
 
-  // ------------------------
-  // Drawing code
-  // ------------------------
+  function formatDistanceForFormula(meters) {
+    if (params.units === 'm_s') return `${Math.round(meters)} m`;
+    return `${(metersToKm(meters)).toFixed(2)} km`;
+  }
+  function formatTimeForFormula(sec) {
+    if (params.units === 'm_s') return `${Math.round(sec)} s`;
+    return `${(sec / 3600).toFixed(3)} h`;
+  }
+
+  updateFormulaUnits();
+  if (formulaDistance) formulaDistance.textContent = formatDistanceForFormula(params.distance_m);
+  if (formulaTime) formulaTime.textContent = formatTimeForFormula(params.time_s);
+
+  /* ===========================
+     Physics & helpers
+     =========================== */
+
+  function computeBaseSpeedMs(distance_m, time_s) {
+    const t = Math.max(0.000001, time_s);
+    return distance_m / t;
+  }
+
+  function computeTargetSpeeds() {
+    const baseMs = computeBaseSpeedMs(params.distance_m, params.time_s);
+    const frictionFactor = 1 - clamp(params.friction_pct / 200, 0, 0.9);
+    const baseA = baseMs * (1.0 + objA.baseOffset);
+    const baseB = baseMs * (1.0 + objB.baseOffset);
+    objA.targetSpeed = baseA * frictionFactor;
+    objB.targetSpeed = baseB * frictionFactor;
+  }
+  computeTargetSpeeds();
+
+  /* ===========================
+     Track drawing & zones
+     =========================== */
+
   function drawStaticTrack() {
-    try {
-      const ctx = trackCtx;
-      const w = trackCanvas.width;
-      const h = trackCanvas.height;
-      ctx.clearRect(0, 0, w, h);
+    const w = trackCanvas.width / (window.devicePixelRatio || 1);
+    const h = trackCanvas.height / (window.devicePixelRatio || 1);
+    trackCtx.clearRect(0, 0, w, h);
 
-      // subtle starfield
-      ctx.save();
-      for (let i = 0; i < 80; i++) {
-        ctx.fillStyle = 'rgba(255,255,255,0.02)';
-        ctx.beginPath();
-        ctx.arc((i * 73) % w, (i * 47) % h, (i % 17 === 0) ? 1.2 : 0.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
+    // base background
+    trackCtx.save();
+    trackCtx.fillStyle = '#031018';
+    trackCtx.fillRect(0, 0, w, h);
+    trackCtx.restore();
 
-      // track lane center
-      const laneY = h * 0.5;
-      const laneH = Math.round(h * 0.14);
+    const trackPadding = 18;
+    const trackH = h - trackPadding * 2;
+    const trackY = trackPadding;
+    const trackX = trackPadding;
+    const trackWidth = w - trackPadding * 2;
 
-      // draw zones visually
-      state.zones.forEach(z => {
-        ctx.fillStyle = hexToRgba(z.color, 0.06);
-        ctx.fillRect(z.x, laneY - laneH / 2, z.w, laneH);
+    trackCanvas._track = { x: trackX, y: trackY, w: trackWidth, h: trackH };
 
-        ctx.strokeStyle = hexToRgba(z.color, 0.16);
-        ctx.lineWidth = Math.max(1, w / 900);
-        roundedRect(ctx, z.x, laneY - laneH / 2, z.w, laneH, 10);
-        ctx.stroke();
+    // track base
+    trackCtx.fillStyle = '#041324';
+    roundRect(trackCtx, trackX, trackY, trackWidth, trackH, 10);
+    trackCtx.fill();
 
-        ctx.fillStyle = hexToRgba(z.color, 0.95);
-        ctx.font = `${12 * (w / 1200)}px system-ui, Arial`;
-        ctx.fillText(z.id.toUpperCase(), z.x + 8 * (w / 1200), laneY - laneH / 2 + 18);
-      });
+    // zones
+    zones.forEach(z => {
+      const zx = trackX + z.start * trackWidth;
+      const zw = (z.end - z.start) * trackWidth;
+      trackCtx.save();
+      trackCtx.shadowColor = z.color;
+      trackCtx.shadowBlur = 28;
+      trackCtx.fillStyle = hexToRgba(z.color, 0.12);
+      roundRect(trackCtx, zx, trackY, zw, trackH, 6);
+      trackCtx.fill();
+      trackCtx.restore();
 
-      // start & finish markers
-      ctx.fillStyle = 'rgba(255,255,255,0.06)';
-      ctx.fillRect(state.trackStartPx - 4, laneY - laneH / 2 - 26, 8, laneH + 52);
-      ctx.fillRect(state.trackEndPx - 4, laneY - laneH / 2 - 26, 8, laneH + 52);
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.font = `${11 * (w / 1200)}px system-ui, Arial`;
-      ctx.fillText('START', state.trackStartPx - 28, laneY - laneH / 2 - 32);
-      ctx.fillText('FINISH', state.trackEndPx - 36, laneY - laneH / 2 - 32);
-    } catch (e) { console.warn('drawStaticTrack', e); }
+      trackCtx.strokeStyle = hexToRgba(z.color, 0.18);
+      trackCtx.lineWidth = 2;
+      roundRect(trackCtx, zx + 1, trackY + 1, Math.max(zw - 2, 2), trackH - 2, 6);
+      trackCtx.stroke();
+    });
+
+    // start & finish
+    trackCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+    trackCtx.lineWidth = 2;
+    trackCtx.beginPath();
+    trackCtx.moveTo(trackX + 2, trackY);
+    trackCtx.lineTo(trackX + 2, trackY + trackH);
+    trackCtx.moveTo(trackX + trackWidth - 2, trackY);
+    trackCtx.lineTo(trackX + trackWidth - 2, trackY + trackH);
+    trackCtx.stroke();
   }
 
-  function roundedRect(ctx, x, y, w, h, r) {
+  function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -566,388 +364,455 @@
     ctx.closePath();
   }
 
-  function drawFrame() {
-    try {
-      drawStaticTrack();
-      drawBoostParticles(trackCtx);
-      drawTrail(trackCtx, objects.A);
-      drawTrail(trackCtx, objects.B);
-      drawVelocityVector(trackCtx, objects.A);
-      drawVelocityVector(trackCtx, objects.B);
-      drawObject(trackCtx, objects.A, -28);
-      drawObject(trackCtx, objects.B, 28);
-    } catch (e) { console.warn('drawFrame', e); }
+  function hexToRgba(hex, alpha = 1) {
+    const h = hex.replace('#', '');
+    const bigint = parseInt(h, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r},${g},${b},${alpha})`;
   }
 
-  function drawTrail(ctx, obj) {
-    try {
-      if (!obj.trail || obj.trail.length < 2) return;
-      ctx.save();
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      for (let i = 1; i < obj.trail.length; i++) {
-        const p1 = obj.trail[i - 1], p2 = obj.trail[i];
-        const age = state.simTime - p1.t;
-        const alpha = clamp(1 - age / 4, 0.02, 0.85);
-        ctx.strokeStyle = hexToRgba(obj.color, alpha);
-        ctx.lineWidth = Math.max(1, (8 - (i / 60)) * (trackCanvas.width / 1200));
-        ctx.beginPath();
-        ctx.moveTo(p1.x, trackCanvas.height * 0.5);
-        ctx.lineTo(p2.x, trackCanvas.height * 0.5);
-        ctx.stroke();
-      }
-      ctx.restore();
-    } catch (e) { console.warn('drawTrail', e); }
+  drawStaticTrack();
+
+  /* ===========================
+     Reset, start/pause/reset handlers
+     =========================== */
+
+  function resetSimulation() {
+    sim.running = false;
+    sim.lastTime = null;
+    sim.elapsed = 0;
+    objA.x = 0; objB.x = 0;
+    objA.y = 0; objB.y = 0;
+    objA.trail = []; objB.trail = [];
+    objA.currentSpeed = 0; objB.currentSpeed = 0;
+    objA.distanceTravelled = 0; objB.distanceTravelled = 0;
+    graphData = { time: [], distanceA: [], distanceB: [], speedA: [], speedB: [] };
+    computeTargetSpeeds();
+    drawStaticTrack();
+    drawFrame();
+    clearGraphs();
+    drawGraphs();
+    updateSpeedTracker();
   }
 
-  function drawObject(ctx, obj, yOffset) {
-    try {
-      const x = distanceToPixel(obj.covered_m);
-      const y = trackCanvas.height * 0.5 + yOffset;
-      // glow rings
-      for (let i = 6; i >= 1; i--) {
-        ctx.beginPath();
-        ctx.fillStyle = hexToRgba(obj.color, 0.04 * (i / 6));
-        ctx.arc(x, y, 12 + i * 2, 0, Math.PI * 2);
-        ctx.fill();
+  resetSimulation();
+
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      if (!sim.running) {
+        sim.running = true;
+        sim.lastTime = performance.now();
+        requestAnimationFrame(loop);
       }
-      // core
-      ctx.beginPath();
-      ctx.fillStyle = obj.color;
-      ctx.arc(x, y, 10, 0, Math.PI * 2);
-      ctx.fill();
-
-      // label
-      ctx.fillStyle = '#02030a';
-      ctx.font = `${10 * (trackCanvas.width / 1200)}px Inter, Arial`;
-      ctx.textAlign = 'center';
-      ctx.fillText(obj.id, x, y + 4);
-    } catch (e) { console.warn('drawObject', e); }
-  }
-
-  function drawVelocityVector(ctx, obj) {
-    try {
-      const x = distanceToPixel(obj.covered_m);
-      const y = trackCanvas.height * 0.5 + (obj === objects.A ? -28 : 28);
-      const latestArr = obj === objects.A ? samples.aSpeed : samples.bSpeed;
-      const latest = (latestArr && latestArr.length) ? latestArr[latestArr.length - 1] : 0;
-      let display = latest;
-      if (isKmHSelected()) display = latest * 3.6;
-      const len = clamp(display * 2 * (trackCanvas.width / 1200), 6, 160);
-      ctx.beginPath();
-      ctx.strokeStyle = hexToRgba(obj.color, 0.95);
-      ctx.lineWidth = Math.max(1, trackCanvas.width / 900);
-      ctx.moveTo(x - 12, y);
-      ctx.lineTo(x - 12 + len, y);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.fillStyle = obj.color;
-      ctx.moveTo(x - 12 + len, y);
-      ctx.lineTo(x - 12 + len - 8, y - 4);
-      ctx.lineTo(x - 12 + len - 8, y + 4);
-      ctx.closePath();
-      ctx.fill();
-    } catch (e) { console.warn('drawVelocityVector', e); }
-  }
-
-  // boost particles for boost zone
-  function drawBoostParticles(ctx) {
-    try {
-      const boost = state.zones.find(z => z.id === 'boost');
-      if (!boost) return;
-      const spawn = Math.max(1, Math.round(0.4 * state.dpr));
-      for (let i = 0; i < spawn; i++) {
-        const x = boost.x + Math.random() * boost.w;
-        const y = (trackCanvas.height * 0.5) + (Math.random() * 20 - 10);
-        particles.push({ x, y, vx: (Math.random() * 0.6 - 0.3), vy: (Math.random() * -0.3), life: 1 + Math.random() * 0.6 });
-      }
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx * (1 + state.dpr * 0.2);
-        p.y += p.vy;
-        p.life -= 0.02 + Math.random() * 0.02;
-        if (p.life <= 0) particles.splice(i, 1);
-        else {
-          ctx.beginPath();
-          ctx.fillStyle = `rgba(0,255,120,${clamp(p.life, 0, 1) * 0.12})`;
-          ctx.arc(p.x, p.y, 2 + Math.random() * 1.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-      while (particles.length > 200) particles.shift();
-    } catch (e) { console.warn('drawBoostParticles', e); }
-  }
-
-  // ------------------------
-  // Graphing (Distance vs Time & Speed vs Time)
-  // ------------------------
-  function drawGraphs() {
-    drawDistanceGraph();
-    drawSpeedGraph();
-  }
-
-  function drawDistanceGraph() {
-    try {
-      const ctx = distCtx;
-      const canvas = distGraph;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const pad = { l: 44 * state.dpr, r: 12 * state.dpr, t: 10 * state.dpr, b: 26 * state.dpr };
-      const w = canvas.width, h = canvas.height;
-      const plotW = w - pad.l - pad.r;
-      const plotH = h - pad.t - pad.b;
-
-      // background
-      ctx.fillStyle = 'rgba(255,255,255,0.02)';
-      ctx.fillRect(pad.l, pad.t, plotW, plotH);
-
-      const tArr = samples.t;
-      const n = tArr.length;
-      const tMax = Math.max(1, n ? tArr[n - 1] : 1);
-      const dMax = Math.max(1, Number(distanceInput ? distanceInput.value : distanceRange.value) || 1);
-
-      // grid lines & tick labels
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-      ctx.lineWidth = Math.max(1, state.dpr);
-      ctx.font = `${10 * state.dpr}px Inter`;
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-
-      for (let i = 0; i <= 4; i++) {
-        const y = pad.t + plotH - (i / 4) * plotH;
-        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + plotW, y); ctx.stroke();
-        const val = dMax * (i / 4);
-        ctx.fillText(fmt(val, 0), 6, y + 4);
-      }
-      for (let i = 0; i <= 4; i++) {
-        const x = pad.l + (i / 4) * plotW;
-        ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + plotH); ctx.stroke();
-        const tVal = tMax * (i / 4);
-        ctx.fillText(fmt(tVal, 1), x - 8, h - 6);
-      }
-
-      // mappers
-      const mapX = t => pad.l + (t / (tMax || 1)) * plotW;
-      const mapY = d => pad.t + plotH - (d / (dMax || 1)) * plotH;
-
-      // draw A (solid)
-      ctx.lineWidth = 2 * state.dpr;
-      ctx.strokeStyle = hexToRgba(objects.A.color, 0.95);
-      ctx.beginPath();
-      for (let i = 0; i < n; i++) {
-        const x = mapX(samples.t[i] || 0);
-        const y = mapY(samples.aDist[i] || 0);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      // draw B (dashed)
-      ctx.setLineDash([6 * state.dpr, 4 * state.dpr]);
-      ctx.strokeStyle = hexToRgba(objects.B.color, 0.95);
-      ctx.beginPath();
-      for (let i = 0; i < n; i++) {
-        const x = mapX(samples.t[i] || 0);
-        const y = mapY(samples.bDist[i] || 0);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-      ctx.setLineDash([]);
-    } catch (e) { console.warn('drawDistanceGraph', e); }
-  }
-
-  function drawSpeedGraph() {
-    try {
-      const ctx = speedCtx;
-      const canvas = speedGraph;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const pad = { l: 44 * state.dpr, r: 12 * state.dpr, t: 10 * state.dpr, b: 26 * state.dpr };
-      const w = canvas.width, h = canvas.height;
-      const plotW = w - pad.l - pad.r;
-      const plotH = h - pad.t - pad.b;
-
-      ctx.fillStyle = 'rgba(255,255,255,0.02)';
-      ctx.fillRect(pad.l, pad.t, plotW, plotH);
-
-      const tArr = samples.t;
-      const n = tArr.length;
-      let sMax = 1;
-      if (n > 0) {
-        const vals = [];
-        for (let i = 0; i < samples.aSpeed.length; i++) {
-          let a = samples.aSpeed[i] || 0;
-          let b = samples.bSpeed[i] || 0;
-          if (isKmHSelected()) { a *= 3.6; b *= 3.6; }
-          vals.push(Math.abs(a), Math.abs(b));
-        }
-        sMax = Math.max(1, ...vals);
-      }
-
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-      ctx.lineWidth = Math.max(1, state.dpr);
-      ctx.font = `${10 * state.dpr}px Inter`;
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-
-      for (let i = 0; i <= 4; i++) {
-        const y = pad.t + plotH - (i / 4) * plotH;
-        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + plotW, y); ctx.stroke();
-        const val = sMax * (i / 4);
-        ctx.fillText(fmt(val, 1), 6, y + 4);
-      }
-      for (let i = 0; i <= 4; i++) {
-        const x = pad.l + (i / 4) * plotW;
-        ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + plotH); ctx.stroke();
-        const tVal = ((n ? tArr[tArr.length - 1] : 1) * (i / 4));
-        ctx.fillText(fmt(tVal, 1), x - 8, h - 6);
-      }
-
-      const mapX = t => pad.l + (t / (Math.max(1, (tArr[n - 1] || 1)))) * plotW;
-      const mapY = s => pad.t + plotH - (s / (sMax || 1)) * plotH;
-
-      // A
-      ctx.lineWidth = 2 * state.dpr;
-      ctx.strokeStyle = hexToRgba(objects.A.color, 0.95);
-      ctx.beginPath();
-      for (let i = 0; i < samples.aSpeed.length; i++) {
-        let s = samples.aSpeed[i] || 0;
-        if (isKmHSelected()) s *= 3.6;
-        const x = mapX(samples.t[i] || 0);
-        const y = mapY(s);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      // B dashed
-      ctx.setLineDash([6 * state.dpr, 4 * state.dpr]);
-      ctx.strokeStyle = hexToRgba(objects.B.color, 0.95);
-      ctx.beginPath();
-      for (let i = 0; i < samples.bSpeed.length; i++) {
-        let s = samples.bSpeed[i] || 0;
-        if (isKmHSelected()) s *= 3.6;
-        const x = mapX(samples.t[i] || 0);
-        const y = mapY(s);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-      ctx.setLineDash([]);
-    } catch (e) { console.warn('drawSpeedGraph', e); }
-  }
-
-  // ------------------------
-  // Tooltip for graphs & track
-  // ------------------------
-  if (tooltip) {
-    // Track hover tooltip: show nearest object distance & zone
-    trackCanvas.addEventListener('mousemove', (ev) => {
-      try {
-        const rect = trackCanvas.getBoundingClientRect();
-        const x = (ev.clientX - rect.left) * (trackCanvas.width / rect.width);
-        const y = (ev.clientY - rect.top) * (trackCanvas.height / rect.height);
-        const ax = distanceToPixel(objects.A.covered_m);
-        const ay = trackCanvas.height * 0.5 - 28;
-        const bx = distanceToPixel(objects.B.covered_m);
-        const by = trackCanvas.height * 0.5 + 28;
-        const da = Math.hypot(ax - x, ay - y);
-        const db = Math.hypot(bx - x, by - y);
-        const near = da < db ? objects.A : objects.B;
-        const zone = state.zones.find(z => x >= z.x && x <= z.x + z.w);
-        tooltip.style.display = 'block';
-        tooltip.style.left = (ev.clientX + 12) + 'px';
-        tooltip.style.top = (ev.clientY + 12) + 'px';
-        tooltip.innerHTML = `<strong>Object ${near.id}</strong><br/>Distance: ${formatDistanceDisplay(near.covered_m)}<br/>Zone: ${zone ? zone.id.toUpperCase() : 'NORMAL'}`;
-      } catch (e) { /* ignore */ }
     });
-    trackCanvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
   }
 
-  // ------------------------
-  // Display updates
-  // ------------------------
-  function updateDisplays(currentSpeed) {
-    try {
-      if (speedDisplay) speedDisplay.textContent = formatSpeedDisplay(currentSpeed || 0);
-      if (computedSpeedEl) computedSpeedEl.textContent = (isFinite(baseSpeed_mps()) ? (isKmHSelected() ? (baseSpeed_mps() * 3.6).toFixed(2) : baseSpeed_mps().toFixed(2)) : '0');
-      if (computedUnitEl) computedUnitEl.textContent = isKmHSelected() ? 'km/h' : 'm/s';
-
-      if (distAEl) distAEl.textContent = formatDistanceDisplay(objects.A.covered_m || 0);
-      if (distBEl) distBEl.textContent = formatDistanceDisplay(objects.B.covered_m || 0);
-    } catch (e) { console.warn('updateDisplays error', e); }
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', () => {
+      sim.running = false;
+    });
   }
 
-  // ------------------------
-  // Initialization & intro animation
-  // ------------------------
-  function introSlide() {
-    try {
-      const start = performance.now();
-      const duration = 650;
-      const offs = -120;
-      function frame(ts) {
-        const t = clamp((ts - start) / duration, 0, 1);
-        const ease = 1 - Math.pow(1 - t, 3);
-        const px = state.trackStartPx + offs * (1 - ease);
-        objects.A.covered_m = pixelToDistance(px);
-        objects.B.covered_m = pixelToDistance(px);
-        drawStaticTrack();
-        drawFrame();
-        updateDisplays(0);
-        if (t < 1) requestAnimationFrame(frame);
-        else {
-          objects.A.covered_m = 0;
-          objects.B.covered_m = 0;
-          drawStaticTrack();
-          drawFrame();
-          updateDisplays(0);
-        }
-      }
-      requestAnimationFrame(frame);
-    } catch (e) { console.warn('introSlide error', e); }
-  }
-
-  // ------------------------
-  // Utility mapping wrappers (exposed locally)
-  // ------------------------
- 
-  // ------------------------
-  // Startup initialization
-  // ------------------------
-  function init() {
-    try {
-      // Set UI default sync
-      if (distanceRange && distanceInput) { distanceRange.value = distanceInput.value; }
-      if (timeRange && timeInput) { timeRange.value = timeInput.value; }
-      if (frictionRange && frictionInput) { frictionInput.value = frictionRange.value; }
-      if (turboRange && turboInput) { turboInput.value = turboRange.value; }
-
-      // object sliders populate
-      if (massARange && massAInput) { massARange.value = objects.A.mass; massAInput.value = objects.A.mass; }
-      if (massBRange && massBInput) { massBRange.value = objects.B.mass; massBInput.value = objects.B.mass; }
-      if (speedAMultRange && speedAMultInput) { speedAMultRange.value = objects.A.speedMult; speedAMultInput.value = objects.A.speedMult; }
-      if (speedBMultRange && speedBMultInput) { speedBMultRange.value = objects.B.speedMult; speedBMultInput.value = objects.B.speedMult; }
-
-      computeZones();
-      resizeAll();
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
       resetSimulation();
-      updateDisplays(0);
-      introSlide();
-    } catch (e) {
-      console.error('init error', e);
+    });
+  }
+
+  function resetGraphsIfNotRunning() {
+    if (!sim.running) {
+      clearGraphs();
+      drawGraphs();
     }
   }
 
-  // ------------------------
-  // Expose debug helpers
-  // ------------------------
-  window.simIIS = {
-    start: startSimulation,
-    pause: pauseSimulation,
-    reset: resetSimulation,
-    state,
-    objects,
-    samples
-  };
+  /* ===========================
+     Physics update
+     =========================== */
 
-  // Run initialization slightly deferred to allow DOM/CSS to settle
-  setTimeout(init, 80);
+  function updatePhysics(dt) {
+    const track = trackCanvas._track;
+    if (!track) return;
 
-})();
+    const trackPixelPerMeter = track.w / Math.max(params.distance_m, 0.0001);
+
+    computeTargetSpeeds();
+
+    function stepObject(obj) {
+      const fraction = obj.x / Math.max(track.w, 1);
+      let zoneMul = 1.0;
+      for (const z of zones) {
+        if (fraction >= z.start && fraction < z.end) { zoneMul = z.multiplier; break; }
+      }
+
+      const zoneTarget = obj.targetSpeed * zoneMul;
+      // NEW — object-specific mass & friction
+const objMass =
+  obj.id === 'A' ? params.massA : params.massB;
+
+const objFriction =
+  obj.id === 'A' ? params.frictionA : params.frictionB;
+
+// mass influences acceleration responsiveness
+const massFactor = clamp(objMass / 10, 0.5, 50);
+
+// acceleration toward target speed
+const accel = (zoneTarget - obj.currentSpeed) / massFactor;
+
+// friction proportional to object-specific friction slider
+const frictionResistance = (objFriction / 100) * 0.8 * obj.currentSpeed;
+
+
+      obj.currentSpeed += (accel - frictionResistance * 0.01) * dt;
+      obj.currentSpeed = Math.max(0, obj.currentSpeed);
+
+      const deltaMeters = obj.currentSpeed * dt;
+      obj.distanceTravelled += deltaMeters;
+      obj.x = obj.distanceTravelled * trackPixelPerMeter;
+
+      obj.trail.push({ x: obj.x, t: performance.now(), speed: obj.currentSpeed });
+      if (obj.trail.length > 220) obj.trail.shift();
+
+      if (obj.x >= track.w) {
+        obj.x = track.w;
+        obj.currentSpeed = 0;
+      }
+    }
+
+    stepObject(objA);
+    stepObject(objB);
+
+    sim.elapsed += dt;
+  }
+
+  /* ===========================
+     Drawing
+     =========================== */
+
+  function drawFrame() {
+    drawStaticTrack();
+
+    const track = trackCanvas._track;
+    if (!track) return;
+
+    const lanePadding = 18;
+    const laneHeight = (track.h - lanePadding * 2) / 2;
+    objA.y = track.y + lanePadding + laneHeight / 2;
+    objB.y = track.y + lanePadding + laneHeight + laneHeight / 2;
+
+    function drawTrail(obj) {
+      const trail = obj.trail;
+      if (!trail || trail.length < 2) return;
+      for (let i = 0; i < trail.length - 1; i++) {
+        const a = trail[i], b = trail[i + 1];
+        const alpha = Math.max(0.02, (i / trail.length));
+        trackCtx.beginPath();
+        trackCtx.moveTo(track.x + a.x, obj.id === 'A' ? objA.y : objB.y);
+        trackCtx.lineTo(track.x + b.x, obj.id === 'A' ? objA.y : objB.y);
+        trackCtx.strokeStyle = hexToRgba(obj.color, alpha * 0.9);
+        trackCtx.lineWidth = 6;
+        trackCtx.lineCap = 'round';
+        trackCtx.stroke();
+      }
+    }
+
+    trackCtx.save();
+    trackCtx.globalCompositeOperation = 'lighter';
+    drawTrail(objA);
+    drawTrail(objB);
+    trackCtx.restore();
+
+    function drawObject(obj) {
+      const cx = track.x + obj.x;
+      const cy = obj.id === 'A' ? objA.y : objB.y;
+
+      trackCtx.save();
+      trackCtx.shadowColor = obj.color;
+      trackCtx.shadowBlur = 22;
+      trackCtx.beginPath();
+      trackCtx.arc(cx, cy, 12, 0, Math.PI * 2);
+      trackCtx.fillStyle = hexToRgba(obj.color, 0.22);
+      trackCtx.fill();
+      trackCtx.restore();
+
+      trackCtx.beginPath();
+      trackCtx.arc(cx, cy, 8, 0, Math.PI * 2);
+      trackCtx.fillStyle = obj.color;
+      trackCtx.fill();
+
+      const vlen = clamp(obj.currentSpeed / 2, 0, 40);
+      if (vlen > 0.1) {
+        trackCtx.beginPath();
+        trackCtx.moveTo(cx + 10, cy);
+        trackCtx.lineTo(cx + 10 + vlen, cy);
+        trackCtx.strokeStyle = hexToRgba(obj.color, 0.9);
+        trackCtx.lineWidth = 2;
+        trackCtx.stroke();
+
+        trackCtx.beginPath();
+        trackCtx.moveTo(cx + 10 + vlen, cy);
+        trackCtx.lineTo(cx + 8 + vlen, cy - 3);
+        trackCtx.lineTo(cx + 8 + vlen, cy + 3);
+        trackCtx.closePath();
+        trackCtx.fillStyle = hexToRgba(obj.color, 0.9);
+        trackCtx.fill();
+      }
+    }
+
+    drawObject(objA);
+    drawObject(objB);
+  }
+
+  /* ===========================
+     Graphing (canvas)
+     =========================== */
+
+  function clearGraphs() {
+    distanceCtx.clearRect(0, 0, distanceGraph.width, distanceGraph.height);
+    speedCtx.clearRect(0, 0, speedGraph.width, speedGraph.height);
+  }
+
+  function drawAxes(ctx, canvasEl) {
+    const w = canvasEl.width / (window.devicePixelRatio || 1);
+    const h = canvasEl.height / (window.devicePixelRatio || 1);
+    ctx.save();
+    ctx.fillStyle = '#031018';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i <= 4; i++) {
+      const y = (i / 4) * h;
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawGraphs() {
+    if (!graphData.time.length) {
+      drawAxes(distanceCtx, distanceGraph);
+      drawAxes(speedCtx, speedGraph);
+      return;
+    }
+
+    // Distance graph
+    drawAxes(distanceCtx, distanceGraph);
+    {
+      const w = distanceGraph.width / (window.devicePixelRatio || 1);
+      const h = distanceGraph.height / (window.devicePixelRatio || 1);
+      const tmax = Math.max(...graphData.time, 1);
+      const dmax = Math.max(...graphData.distanceA, ...graphData.distanceB, params.distance_m);
+      distanceCtx.fillStyle = '#9fb7c8';
+      distanceCtx.font = '12px system-ui, Roboto, Arial';
+      distanceCtx.fillText('Time (s)', 8, h - 6);
+      distanceCtx.fillText(params.units === 'm_s' ? 'Distance (m)' : 'Distance (km)', w - 120, h - 6);
+
+      function plotLine(values, color, width = 2) {
+        distanceCtx.beginPath();
+        for (let i = 0; i < values.length; i++) {
+          const tx = graphData.time[i];
+          const vx = (tx / tmax) * (w - 30) + 20;
+          const vy = h - 24 - (values[i] / (dmax || 1)) * (h - 40);
+          if (i === 0) distanceCtx.moveTo(vx, vy); else distanceCtx.lineTo(vx, vy);
+        }
+        distanceCtx.strokeStyle = color;
+        distanceCtx.lineWidth = width;
+        distanceCtx.stroke();
+      }
+
+      plotLine(graphData.distanceA.map(v => v), objectAColor, 2.5);
+      plotLine(graphData.distanceB.map(v => v), objectBColor, 2.5);
+
+      distanceCtx.fillStyle = objectAColor;
+      distanceCtx.fillRect(28, 8, 10, 6);
+      distanceCtx.fillStyle = objectBColor;
+      distanceCtx.fillRect(120, 8, 10, 6);
+      distanceCtx.fillStyle = '#9fb7c8';
+      distanceCtx.fillText('A', 42, 16);
+      distanceCtx.fillText('B', 134, 16);
+    }
+
+    // Speed graph
+    drawAxes(speedCtx, speedGraph);
+    {
+      const w = speedGraph.width / (window.devicePixelRatio || 1);
+      const h = speedGraph.height / (window.devicePixelRatio || 1);
+      const tmax = Math.max(...graphData.time, 1);
+      const vmax = Math.max(...graphData.speedA, ...graphData.speedB, 1);
+
+      speedCtx.fillStyle = '#9fb7c8';
+      speedCtx.font = '12px system-ui, Roboto, Arial';
+      speedCtx.fillText('Time (s)', 8, h - 6);
+      speedCtx.fillText(params.units === 'm_s' ? 'Speed (m/s)' : 'Speed (km/h)', w - 120, h - 6);
+
+      function plotLine(values, color, width = 2) {
+        speedCtx.beginPath();
+        for (let i = 0; i < values.length; i++) {
+          const tx = graphData.time[i];
+          const vx = (tx / tmax) * (w - 30) + 20;
+          const vy = h - 24 - (values[i] / (vmax || 1)) * (h - 40);
+          if (i === 0) speedCtx.moveTo(vx, vy); else speedCtx.lineTo(vx, vy);
+        }
+        speedCtx.strokeStyle = color;
+        speedCtx.lineWidth = width;
+        speedCtx.stroke();
+      }
+
+      plotLine(graphData.speedA.map(v => v), objectAColor, 2.5);
+      plotLine(graphData.speedB.map(v => v), objectBColor, 2.5);
+
+      speedCtx.fillStyle = objectAColor;
+      speedCtx.fillRect(28, 8, 10, 6);
+      speedCtx.fillStyle = objectBColor;
+      speedCtx.fillRect(120, 8, 10, 6);
+      speedCtx.fillStyle = '#9fb7c8';
+      speedCtx.fillText('A', 42, 16);
+      speedCtx.fillText('B', 134, 16);
+    }
+  }
+
+  /* Graph tooltip handling */
+  function attachGraphTooltip(canvasEl, ctx, dataType) {
+    canvasEl.addEventListener('mousemove', (ev) => {
+      const rect = canvasEl.getBoundingClientRect();
+      const x = ev.clientX - rect.left;
+      const ratio = (x / rect.width);
+      if (!graphData.time.length) {
+        graphTooltip.style.display = 'none';
+        graphTooltip.setAttribute('aria-hidden', 'true');
+        return;
+      }
+      const i = Math.round((graphData.time.length - 1) * ratio);
+      const idx = clamp(i, 0, graphData.time.length - 1);
+      let t = graphData.time[idx].toFixed(2);
+      let aVal, bVal, label;
+      if (dataType === 'distance') {
+        aVal = graphData.distanceA[idx]; bVal = graphData.distanceB[idx];
+        label = params.units === 'm_s' ? 'm' : 'km';
+        if (params.units !== 'm_s') { aVal = (aVal / 1000).toFixed(2); bVal = (bVal / 1000).toFixed(2); }
+        else { aVal = aVal.toFixed(2); bVal = bVal.toFixed(2); }
+      } else {
+        aVal = graphData.speedA[idx]; bVal = graphData.speedB[idx];
+        if (params.units === 'm_s') { aVal = aVal.toFixed(2); bVal = bVal.toFixed(2); label = 'm/s'; }
+        else { aVal = (msToKmh(aVal)).toFixed(2); bVal = (msToKmh(bVal)).toFixed(2); label = 'km/h'; }
+      }
+
+      graphTooltip.style.left = `${ev.clientX}px`;
+      graphTooltip.style.top = `${ev.clientY}px`;
+      graphTooltip.style.display = 'block';
+      graphTooltip.setAttribute('aria-hidden', 'false');
+      graphTooltip.innerHTML = `<strong>t=${t}s</strong> • A: ${aVal} • B: ${bVal} ${label}`;
+    });
+
+    canvasEl.addEventListener('mouseleave', () => {
+      graphTooltip.style.display = 'none';
+      graphTooltip.setAttribute('aria-hidden', 'true');
+    });
+  }
+
+  attachGraphTooltip(distanceGraph, distanceCtx, 'distance');
+  attachGraphTooltip(speedGraph, speedCtx, 'speed');
+
+  /* ===========================
+     Main loop
+     =========================== */
+
+  function loop(now) {
+    if (!sim.running) return;
+    if (!sim.lastTime) sim.lastTime = now;
+    const dt = Math.min(0.1, (now - sim.lastTime) / 1000);
+    sim.lastTime = now;
+
+    updatePhysics(dt);
+    drawFrame();
+
+    // record data
+    graphData.time.push(sim.elapsed);
+    graphData.distanceA.push(objA.distanceTravelled);
+    graphData.distanceB.push(objB.distanceTravelled);
+    graphData.speedA.push(objA.currentSpeed);
+    graphData.speedB.push(objB.currentSpeed);
+
+    // update live speed display
+    let speedA_display = objA.currentSpeed;
+    let speedB_display = objB.currentSpeed;
+    let speedLabel = 'm/s';
+    if (params.units === 'km_h') {
+      speedA_display = msToKmh(speedA_display);
+      speedB_display = msToKmh(speedB_display);
+      speedLabel = 'km/h';
+    }
+    if (liveSpeed) liveSpeed.textContent = `Current speed (A): ${speedA_display.toFixed(2)} ${speedLabel} • (B): ${speedB_display.toFixed(2)} ${speedLabel}`;
+
+    // update small live trackers
+    updateSpeedTracker();
+
+    // update graphs
+    drawGraphs();
+
+    // finish detection
+    const finishedA = objA.x >= trackCanvas._track.w - 1;
+    const finishedB = objB.x >= trackCanvas._track.w - 1;
+    const timeExceeded = (sim.elapsed >= Math.max(params.time_s * 1.5, params.time_s + 5));
+
+    if ((finishedA && finishedB) || timeExceeded) {
+      sim.running = false;
+      drawFrame();
+      drawGraphs();
+      return;
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  /* Initialization helpers */
+  trackCanvas.addEventListener('click', () => {
+    if (sim.running) sim.running = false;
+    else {
+      sim.running = true;
+      sim.lastTime = performance.now();
+      requestAnimationFrame(loop);
+    }
+  });
+
+  window.addEventListener('keydown', (ev) => {
+    if (ev.code === 'Space') {
+      ev.preventDefault();
+      if (sim.running) sim.running = false;
+      else {
+        sim.running = true;
+        sim.lastTime = performance.now();
+        requestAnimationFrame(loop);
+      }
+    } else if (ev.key.toLowerCase() === 'r') {
+      resetSimulation();
+    }
+  });
+
+  // initial draws
+  drawStaticTrack();
+  drawFrame();
+  drawGraphs();
+  computeTargetSpeeds();
+  updateSpeedTracker();
+
+  // Prevent UI drift on mobile
+  ['touchstart', 'touchmove'].forEach(evt => {
+    trackCanvas.addEventListener(evt, (e) => {
+      e.preventDefault();
+    }, { passive: false });
+  });
+
+} catch (ex) {
+  console.error('Simulation initialization error:', ex);
+  try {
+    const root = document.getElementById('app');
+    if (root) {
+      root.innerHTML = '<div style="padding:24px;color:#fff;background:#321">An error occurred initializing the simulation. Check console for details.</div>';
+    }
+  } catch (e) { /* ignore further failures */ }
+}
