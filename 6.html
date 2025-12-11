@@ -1,121 +1,188 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Grade 7 — Motion & Speed Quiz</title>
-
-  <!-- STYLES -->
-  <link rel="stylesheet" href="6.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Motion Simulation </title>
+  <link rel="stylesheet" href="6.css" />
 </head>
 
 <body>
 
-  <!-- ✅ STUDENT INFO (NO START BUTTON HERE ANYMORE) -->
-  <div id="studentForm" class="card">
-    <h2>Student Information</h2>
-    <input id="studentName" type="text" placeholder="Enter your full name" required>
-    <input id="studentSection" type="text" placeholder="Enter your section" required>
-  </div>
+  <main id="app" class="arpp" role="application" aria-label="Motion Simulation for Distance Speed Time">
 
-  <!-- ✅ MAIN QUIZ APP -->
-  <div class="app">
+    <header class="header">
+      <h1>Motion Simulation By FunWeb</h1>
+      <p class="lead">
+        Engage: Who do you THINK will reach the end first?
+        Use the sliders (Time, Distance, Mass, Friction) then Start.
+      </p>
+    </header>
 
-    <!-- LEFT PANEL -->
-    <aside class="left">
-      <div class="brand">
-        <div class="logo">G7</div>
-        <div>
-          <h1>Motion Quiz</h1>
-          <p></p>
-        </div>
-      </div>
+    <!-- 🎯 LIVE SPEED TRACKER (CORRECT POSITION — NO SLIDERS) -->
+    <div class="speed-tracker glass">
+      <h3>Object A Speed</h3>
+      <p class="speed-line">
+        <span id="speedA-ms">0 m/s</span> •
+        <span id="speedA-kmh">0 km/h</span>
+      </p>
+    </div>
 
-      <div class="meta">
-        <p><b>Learning Objectives:</b></p>
-        <ul>
-          <li>Understand motion and speed</li>
-          <li>Apply formulas correctly</li>
-          <li>Solve real-life problems involving motion</li>
-        </ul>
-      </div>
+    <div class="speed-tracker glass">
+      <h3>Object B Speed</h3>
+      <p class="speed-line">
+        <span id="speedB-ms">0 m/s</span> •
+        <span id="speedB-kmh">0 km/h</span>
+      </p>
+    </div>
+    <!-- END SPEED TRACKER -->
 
-      <div class="hint">
-        <b>Instructions:</b> Answer all 10 questions. Feedback is shown after each answer.
-      </div>
+    <section class="layout">
 
-      <!-- ✅ THIS IS NOW THE ONLY START BUTTON -->
-      <button id="startBtn" class="start-btn">Start Quiz</button>
-    </aside>
-
-    <!-- RIGHT PANEL -->
-    <main class="right">
-
-      <div class="topbar">
-        <div>
-          <div class="small muted">Student Progress</div>
-          <b>Motion & Speed Quiz</b>
+      <!-- LEFT: Visualization Canvas -->
+      <section class="visual-panel" aria-label="Simulation visualization">
+        <div class="track-wrap" id="trackWrap">
+          <canvas id="trackCanvas" width="1200" height="220" aria-label="Racetrack canvas"></canvas>
         </div>
 
-        <div class="progress-wrap">
-          <div class="prog-label" id="progLabel">Question 0 of 10</div>
-          <div class="progress">
-            <div id="progressFill" class="fill"></div>
+        <div class="formula-panel" aria-live="polite" aria-atomic="true">
+          <div class="formula-row">
+            <div class="formula-label">Speed =</div>
+            <div class="formula-box" id="formulaBox" aria-hidden="false">
+              <span class="num" id="formulaDistance">Distance</span>
+              <span class="division">÷</span>
+              <span class="den" id="formulaTime">Time</span>
+              <span class="units" id="formulaUnits">m / s</span>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <!-- QUIZ CARD -->
-      <section class="card" id="quizCard">
-        <h2 id="questionTitle">Welcome!</h2>
-        <p id="questionBody">Press Start to begin the quiz.</p>
-
-        <div id="optionsContainer" class="options"></div>
-
-        <p id="feedback" class="feedback"></p>
-
-        <div class="controls">
-          <button id="prevBtn" class="btn" disabled>Previous</button>
-          <button id="nextBtn" class="btn primary" disabled>Next</button>
+          <div class="live-speed" id="liveSpeed" aria-live="polite">
+            Current speed (A): 0.00 m/s • (B): 0.00 m/s
+          </div>
         </div>
       </section>
 
-      <!-- RESULTS CARD -->
-      <section class="card results" id="resultsCard">
-        <div class="summary">
-          <div>
-            <h2>Quiz Results</h2>
-            <p class="small muted">Review your answers below</p>
+      <!-- RIGHT: Controls + Graphs -->
+      <aside class="controls-panel" aria-label="Controls and graphs">
+        <!-- === OBJECT A CONTROLS === -->
+<div class="object-controls">
+  <h3>Object A Controls</h3>
+
+  <label>Mass A (kg)</label>
+  <input type="range" id="massARange" min="1" max="200" value="10" step="1">
+  <input type="number" id="massANumber" min="1" max="200" value="10" step="1">
+
+  <label>Friction A (%)</label>
+  <input type="range" id="frictionARange" min="0" max="100" value="5" step="1">
+  <input type="number" id="frictionANumber" min="0" max="100" value="5" step="1">
+</div>
+
+<!-- === OBJECT B CONTROLS === -->
+<div class="object-controls">
+  <h3>Object B Controls</h3>
+
+  <label>Mass B (kg)</label>
+  <input type="range" id="massBRange" min="1" max="200" value="10" step="1">
+  <input type="number" id="massBNumber" min="1" max="200" value="10" step="1">
+
+  <label>Friction B (%)</label>
+  <input type="range" id="frictionBRange" min="0" max="100" value="5" step="1">
+  <input type="number" id="frictionBNumber" min="0" max="100" value="5" step="1">
+</div>
+
+
+        <section class="controls glass" aria-label="Sliders and buttons">
+          <h2>Controls</h2>
+
+          <div class="control-grid">
+
+            <!-- Distance -->
+            <label for="distanceRange" class="control-row">
+              <div class="control-title">Distance</div>
+              <div class="control-inputs">
+                <input id="distanceRange" class="slider" type="range" min="1" max="10000" step="1" value="100" aria-label="Distance slider" />
+                <input id="distanceNumber" class="number" type="number" min="1" max="10000" step="1" value="100" aria-label="Distance numeric input" />
+                <div class="unitHint" id="distanceUnits">m</div>
+              </div>
+            </label>
+
+            <!-- Time -->
+            <label for="timeRange" class="control-row">
+              <div class="control-title">Time</div>
+              <div class="control-inputs">
+                <input id="timeRange" class="slider" type="range" min="1" max="3600" step="1" value="10" aria-label="Time slider" />
+                <input id="timeNumber" class="number" type="number" min="1" max="3600" step="1" value="10" aria-label="Time numeric input" />
+                <div class="unitHint" id="timeUnits">s</div>
+              </div>
+            </label>
+
+            <!-- Mass -->
+            <label for="massRange" class="control-row">
+              <div class="control-title">Mass</div>
+              <div class="control-inputs">
+                <input id="massRange" class="slider" type="range" min="1" max="200" step="1" value="10" aria-label="Mass slider" />
+                <input id="massNumber" class="number" type="number" min="1" max="200" step="1" value="10" aria-label="Mass numeric input" />
+                <div class="unitHint">kg</div>
+              </div>
+            </label>
+
+            <!-- Friction -->
+            <label for="frictionRange" class="control-row">
+              <div class="control-title">Friction</div>
+              <div class="control-inputs">
+                <input id="frictionRange" class="slider" type="range" min="0" max="100" step="1" value="5" aria-label="Friction slider" />
+                <input id="frictionNumber" class="number" type="number" min="0" max="100" step="1" value="5" aria-label="Friction numeric input" />
+                <div class="unitHint">%</div>
+              </div>
+            </label>
+
+            <!-- Units toggle -->
+            <div class="control-row">
+              <div class="control-title">Units</div>
+              <div class="control-inputs">
+                <button id="unitsToggle" class="btn secondary" aria-pressed="false" aria-label="Toggle units">m / s</button>
+                <div class="smallNote">Toggle meters/seconds or km/h</div>
+              </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="control-row button-row">
+              <button id="startBtn" class="btn primary" aria-label="Start simulation">Start</button>
+              <button id="pauseBtn" class="btn" aria-label="Pause simulation">Pause</button>
+              <button id="resetBtn" class="btn" aria-label="Reset simulation">Reset</button>
+            </div>
+
           </div>
-          <div class="score-bubble" id="scoreBubble">
-            <h2 id="scoreNumber">0 / 10</h2>
-            <p id="scorePercent">0%</p>
+        </section>
+
+        <!-- Graphs -->
+        <section class="graphs glass" aria-label="Graphs">
+          <h2>Graphs</h2>
+
+          <div class="graph-grid">
+            <div class="graph-item">
+              <div class="graph-title">Distance vs Time</div>
+              <canvas id="distanceGraph" width="600" height="200" aria-label="Distance versus time graph"></canvas>
+            </div>
+
+            <div class="graph-item">
+              <div class="graph-title">Speed vs Time</div>
+              <canvas id="speedGraph" width="600" height="200" aria-label="Speed versus time graph"></canvas>
+            </div>
           </div>
-        </div>
 
-        <div class="results-scroll">
-          <table id="resultsTable" class="results-table"></table>
-        </div>
-      </section>
+          <div id="graphTooltip" class="graph-tooltip" role="tooltip" aria-hidden="true"></div>
 
-    </main>
+        </section>
+      </aside>
 
-    <div id="confetti" class="confetti"></div>
+    </section>
 
-  </div>
+    <footer class="footer">
+      <small>Designed for classroom exploration — adjust sliders, watch motion, and discuss how distance, time, mass, and friction affect speed.</small>
+    </footer>
 
-  <!-- ✅ EMAILJS LIBRARY -->
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  </main>
 
-  <!-- ✅ EMAILJS KEY INIT -->
-  <script>
-    emailjs.init("UjiGSekzpgTWMon5i");
-  </script>
-
-  <!-- ✅ MAIN SCRIPT -->
-  <script src="6.js"></script>
-
+  <script src="6.js" defer></script>
 </body>
 </html>
-

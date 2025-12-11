@@ -1,405 +1,258 @@
-/* =========================================================
-   GRADE 7 MOTION & SPEED QUIZ — ULTRA UI EDITION
-   Designer-Level CSS | Glassmorphism | Animations | Glow
-   ========================================================= */
+/* styles.css
+   Neon sci-fi theme, glass UI, responsive layout.
+   Accessible, large targets for touch, high contrast.
+*/
 
-/* ========================== ROOT VARIABLES ========================== */
-:root {
-  --bg-0: #060b1f;
-  --bg-1: #0b122a;
-  --card: rgba(255, 255, 255, 0.045);
-  --glass: rgba(255, 255, 255, 0.07);
-  --muted: #94a3b8;
-  --accent: #60a5fa;
-  --accent-2: #7c3aed;
-  --success: #10b981;
-  --danger: #ef4444;
-  --warning: #fbbf24;
-  --radius: 18px;
-  --text: #e6eef8;
-
-  /* Shadows */
-  --shadow-main: 0 20px 60px rgba(0,0,0,.6);
-  --shadow-soft: 0 10px 30px rgba(0,0,0,.4);
-  --shadow-glow: 0 0 30px rgba(96,165,250,.3);
-
-  /* Progress */
-  --progress-bg: rgba(255,255,255,.08);
-  --progress-fill: linear-gradient(90deg, var(--accent), var(--accent-2));
-
-  /* Fonts */
-  --font-sans: "Inter", system-ui;
-  --font-display: "Nunito", var(--font-sans);
-
-  /* Animations */
-  --fast: 0.15s;
-  --normal: 0.35s;
-  --slow: 0.6s;
-
-  /* Accessibility */
-  --focus-ring: 3px;
-  --focus-color: rgba(96,165,250,0.18);
-  --focus-outline: 4px solid rgba(96,165,250,0.12);
+/* Basic reset */
+:root{
+  --bg:#071019;
+  --panel:#0b1220cc;
+  --glass-blur:8px;
+  --accent:#00ffd5;
+  --neon-a:#ff4dff;
+  --neon-b:#00f0ff;
+  --boost:#39ff7f;
+  --slow:#ff7a3d;
+  --normal:#00e6ff;
+  --glass-outline:rgba(255,255,255,0.04);
+  --text:#e6f7ff;
+  --muted:#9fb7c8;
+  --glass-padding:14px;
+  --radius:12px;
+  --shadow: 0 6px 18px rgba(2,6,23,0.6);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-/* ========================== RESET & BASE ========================== */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: var(--font-sans);
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
   background:
-    radial-gradient(900px 500px at 10% 10%, rgba(124, 58, 237, 0.15), transparent),
-    radial-gradient(700px 400px at 90% 90%, rgba(96, 165, 250, 0.08), transparent),
-    linear-gradient(180deg, var(--bg-0), var(--bg-1));
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 36px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    radial-gradient(1200px 600px at 10% 10%, rgba(3,20,40,0.5), transparent 10%),
+    linear-gradient(180deg, #04111b 0%, var(--bg) 100%);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:20px;
 }
 
-/* Remove native focus styles but preserve accessibility via :focus-visible */
-button, input, select, textarea {
-  font-family: inherit;
-  -webkit-appearance: none;
-  appearance: none;
-  outline: none;
+/* App layout */
+.app{
+  max-width:1320px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
 }
 
-/* ========================== MAIN CONTAINER ========================== */
-.app {
-  width: 100%;
-  max-width: 1100px;
-  min-height: 680px;
-  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-  border-radius: 22px;
-  box-shadow: var(--shadow-main);
-  border: 1px solid rgba(255,255,255,.06);
-  padding: 28px;
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 24px;
-  position: relative;
-  overflow: hidden;
+.header{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  text-align:left;
+}
+.header h1{
+  margin:0;
+  font-size:20px;
+  letter-spacing:0.4px;
+}
+.lead{margin:0;color:var(--muted);font-size:13px}
+
+/* Layout grid */
+.layout{
+  display:grid;
+  grid-template-columns: 1fr 420px;
+  gap:18px;
+}
+@media (max-width:1000px){
+  .layout{grid-template-columns: 1fr}
 }
 
-/* ========================== LEFT PANEL ========================== */
-.left {
-  padding: 24px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,.08);
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+/* Visualization */
+.visual-panel{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.track-wrap{
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  padding:18px;
+  border-radius:16px;
+  box-shadow:var(--shadow);
+}
+#trackCanvas{
+  width:100%;
+  height:220px;
+  display:block;
+  border-radius:8px;
+  background:linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.1));
 }
 
-.brand {
-  display: flex;
-  gap: 14px;
-  align-items: center;
+/* Formula panel */
+.formula-panel{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 12px;
+  border-radius:10px;
+  background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid var(--glass-outline);
+}
+.formula-row{display:flex;align-items:center;gap:12px}
+.formula-label{color:var(--muted);font-weight:600}
+.formula-box{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:8px;
+  background:rgba(255,255,255,0.02);
+  box-shadow: inset 0 -2px 8px rgba(0,0,0,0.5);
+}
+.formula-box .num, .formula-box .den{font-weight:700;color:var(--text);padding:2px 6px;border-radius:6px}
+.formula-box .num{background:rgba(3,255,170,0.06);border:1px solid rgba(3,255,170,0.06)}
+.formula-box .den{background:rgba(255,100,90,0.03)}
+.formula-box .division{opacity:0.8}
+.formula-box .units{font-size:12px;color:var(--muted);margin-left:6px}
+
+.live-speed{color:var(--muted);font-size:13px}
+
+/* Controls panel */
+.controls-panel{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.glass{
+  background:var(--panel);
+  padding:var(--glass-padding);
+  border-radius:var(--radius);
+  backdrop-filter: blur(var(--glass-blur));
+  border:1px solid var(--glass-outline);
+  box-shadow:var(--shadow);
 }
 
-.logo {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: var(--shadow-glow);
-  color: white;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  letter-spacing: 1px;
+/* Control grid */
+.control-grid{display:grid;gap:12px}
+.control-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.control-title{width:88px;color:var(--muted);font-weight:600;font-size:14px}
+.control-inputs{display:flex;align-items:center;gap:8px;flex:1}
+
+/* Slider styles */
+.slider{
+  flex:1;
+  appearance: none;              /* ← Standard */
+  -webkit-appearance:none;       /* ← WebKit */
+  height:10px;
+  border-radius:8px;
+  background:linear-gradient(90deg,#123 0%, #234 100%);
+  outline:none;
 }
 
-.brand h1 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 20px;
+.slider::-webkit-slider-thumb{
+  appearance: none;              /* ← Standard */
+  -webkit-appearance:none;       /* ← WebKit */
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:linear-gradient(180deg,#fff,#ddd);
+  border:3px solid rgba(255,255,255,0.1);
+  box-shadow:0 4px 10px rgba(0,0,0,0.6), 0 0 18px rgba(0,255,200,0.15);
 }
 
-.brand p {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
+.slider::-moz-range-thumb{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:linear-gradient(180deg,#fff,#ddd);
+  border:3px solid rgba(255,255,255,0.1);
+  box-shadow:0 4px 10px rgba(0,0,0,0.6), 0 0 18px rgba(0,255,200,0.15);
 }
 
-.meta ul {
-  padding-left: 22px;
-  line-height: 1.7;
-  color: var(--muted);
+/* Firefox track */
+.slider::-moz-range-track{
+  height:10px;
+  border-radius:8px;
+  background:linear-gradient(90deg,#123 0%, #234 100%);
 }
 
-.hint {
-  font-size: 13px;
+
+/* Buttons */
+.btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:transparent;color:var(--text);font-weight:700}
+.btn:focus{outline:3px solid rgba(0,255,200,0.12)}
+.btn.primary{background:linear-gradient(90deg,var(--neon-a),var(--neon-b));color:#071019;box-shadow:0 8px 30px rgba(0,200,255,0.08)}
+.btn.secondary{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+
+.button-row{display:flex;gap:8px}
+
+/* Graphs */
+.graphs{padding:12px}
+.graph-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:900px){
+  .graph-grid{grid-template-columns:1fr 1fr}
+}
+.graph-item{background:rgba(0,0,0,0.15);padding:8px;border-radius:8px}
+.graph-title{font-size:13px;color:var(--muted);margin-bottom:6px}
+canvas{display:block;width:100%;height:auto;border-radius:6px}
+
+/* Tooltip for graphs */
+.graph-tooltip{
+  position:fixed;
+  pointer-events:none;
+  background:rgba(7,16,25,0.95);
+  color:var(--text);
+  padding:8px 10px;
+  border-radius:6px;
+  font-size:12px;
+  border:1px solid rgba(255,255,255,0.04);
+  transform:translate(-50%,-120%);
+  white-space:nowrap;
+  display:none;
+  z-index:999;
+}
+
+/* Footer */
+.footer{color:var(--muted);font-size:12px;text-align:center;padding:8px}
+
+/* Accessibility: larger touch targets on small screens */
+@media (max-width:600px){
+  .number{width:68px;padding:10px}
+  .btn{padding:12px 14px}
+  .control-title{width:84px;font-size:13px}
+}
+.speed-tracker {
+  margin-bottom: 16px;
   padding: 12px;
   border-radius: 12px;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.07);
+  background: var(--panel);
+  border: 1px solid var(--glass-outline);
+  backdrop-filter: blur(8px);
 }
 
-/* ========================== START BUTTON ========================== */
-.start-btn {
-  margin-top: auto;
-  padding: 15px;
-  border-radius: 14px;
-  border: none;
-  font-weight: 800;
-  cursor: pointer;
-  letter-spacing: .5px;
-  color: white;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  box-shadow: var(--shadow-glow);
-  transition: transform var(--normal), box-shadow var(--normal), box-shadow .15s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.start-btn:hover {
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 0 40px rgba(96,165,250,.4);
-}
-.start-btn:active {
-  transform: scale(.98);
+.speed-tracker h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  color: var(--accent);
 }
 
-/* focus-visible for start button */
-.start-btn:focus-visible {
-  box-shadow: 0 0 0 var(--focus-ring) var(--focus-color), var(--shadow-glow);
-  border-radius: 14px;
-}
-
-/* ========================== RIGHT PANEL ========================== */
-.right {
-  padding: 20px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(12px);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* ========================== PROGRESS BAR ========================== */
-.progress {
-  height: 14px;
-  background: var(--progress-bg);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: inset 0 4px 12px rgba(0,0,0,.6);
-  margin-top: 6px;
-}
-
-.fill {
-  height: 100%;
-  width: 0%;
-  background: var(--progress-fill);
-  box-shadow: 0 0 18px rgba(124,58,237,.65);
-  transition: width var(--slow);
-}
-
-/* visual focus for progress wrapper for keyboard users */
-.progress:focus-visible, .progress-wrap:focus-within {
-  outline: var(--focus-outline);
-  border-radius: 12px;
-}
-
-/* ========================== QUIZ CARD ========================== */
-.card {
-  background: var(--card);
-  border-radius: 18px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  min-height: 360px;
-  border: 1px solid rgba(255,255,255,.06);
-  box-shadow: var(--shadow-soft);
-  animation: fadeIn var(--slow) ease;
-}
-
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(8px);}
-  to {opacity: 1; transform: translateY(0);}
-}
-
-/* ========================== OPTIONS ========================== */
-.options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-/* make option buttons slightly larger hit area for keyboard users */
-.opt-btn {
-  padding: 14px 16px;
-  border-radius: 14px;
-  cursor: pointer;
-  font-weight: 600;
-  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 6px 18px rgba(0,0,0,.4);
-  color: var(--text);
-  transition: all var(--fast), transform var(--fast);
-  text-align: left;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  line-height: 1.3;
-}
-
-.opt-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow);
-}
-
-/* Focus-visible: visible ring for keyboard users */
-.opt-btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 var(--focus-ring) var(--focus-color), var(--shadow-glow);
-  transform: translateY(-2px);
-}
-
-/* Correct/incorrect styles preserved */
-.opt-btn.correct {
-  background: linear-gradient(180deg, rgba(16,185,129,.35), rgba(16,185,129,.15));
-  box-shadow: 0 0 25px rgba(16,185,129,.6);
-}
-
-.opt-btn.incorrect {
-  background: linear-gradient(180deg, rgba(239,68,68,.35), rgba(239,68,68,.15));
-  box-shadow: 0 0 25px rgba(239,68,68,.6);
-}
-
-/* reduce opacity for disabled options to indicate locked state */
-.opt-btn[disabled] {
-  opacity: 0.78;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* ========================== FEEDBACK ========================== */
-.feedback {
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.05);
+.speed-line {
   font-size: 14px;
-  min-height: 40px; /* prevents layout jump when feedback appears */
-}
-
-/* ========================== CONTROLS ========================== */
-.controls {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.btn {
-  padding: 12px 16px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.1);
-  background: rgba(255,255,255,.03);
   color: var(--text);
-  cursor: pointer;
-  transition: transform var(--fast), box-shadow var(--fast);
+}
+.object-controls {
+  padding: 12px;
+  background: #0c1624;
+  border-radius: 10px;
+  margin-top: 12px;
+  border: 1px solid #1a2a3a;
 }
 
-.btn.primary {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-}
-
-/* visible keyboard focus for buttons */
-.btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 var(--focus-ring) var(--focus-color), var(--shadow-glow);
-}
-
-/* hover micro-interaction */
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow);
-}
-
-/* disabled state clarity */
-.btn[disabled], button[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* ========================== RESULTS ========================== */
-.results-scroll {
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.results-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.results-table td,
-.results-table th {
-  padding: 10px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-
-/* ========================== CONFETTI ========================== */
-.confetti {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-/* ========================== REDUCED MOTION ========================== */
-@media (prefers-reduced-motion: reduce) {
-  .fill { transition: none; }
-  .opt-btn, .btn, .start-btn { transition: none; transform: none; }
-  .card { animation: none; }
-}
-
-/* ========================== RESPONSIVE ========================== */
-@media (max-width: 900px) {
-  .app {
-    grid-template-columns: 1fr;
-  }
-  .options {
-    grid-template-columns: 1fr;
-  }
-}
-input {
-  padding: 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.15);
-  background: rgba(255,255,255,.05);
-  color: white;
+.object-controls h3 {
+  margin-bottom: 8px;
   font-size: 15px;
-  outline: none;
-}
-
-input::placeholder {
-  color: #94a3b8;
+  color: #9fb7c8;
 }
